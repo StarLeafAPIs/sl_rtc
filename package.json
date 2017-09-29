@@ -1,0 +1,25 @@
+{
+  "name": "sl_rtc",
+  "version": "0.1.0",
+  "description": "StarLeaf WebRTC calling",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "StarLeaf Ltd",
+  "license": "ISC",
+  "dependencies": {
+    "es6-promise": "^4.1.1",
+    "js-cookie": "^2.1.4",
+    "jssip-sl": "^3.0.9",
+    "sdp-interop-sl": "^1.4.2",
+    "sprintf": "^0.1.5",
+    "webrtc-adapter": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/es6-promise": "0.0.33",
+    "@types/js-cookie": "^2.1.0",
+    "@types/sprintf": "^0.1.0",
+    "typescript": "^2.5.3"
+  }
+}
