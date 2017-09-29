@@ -1,4 +1,4 @@
-import * as adapterjs from 'webrtc-adapter/out/adapter';
+import adapter = require('webrtc-adapter');
 
 export type logFunc = (...args: any[]) => void;
 
@@ -10,6 +10,5 @@ export interface ILogger {
     sub: (prefix: string) => ILogger; //should return a new logger, which logs with the prefix.
 }
 
-export function getBrowser() {
-    return adapterjs.detectBrowser();
-}
+export var detectedBrowser = adapter.browserDetails.browser;
+export var detectedVersion = adapter.browserDetails.version;

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>StarLeaf WebRTC demo</title>
+    <script src="./example.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+        }
+        html {
+            height: 100%;
+        }
+        body {
+            min-height: 100%;
+        }
+        #vid_div {
+            height: 400px;
+        }
+        video {
+            display: inline-block;
+            width: 50%;
+        }
+        #button_div {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="vid_div" style="display: flex;">
+        <video id="local_video" muted autoplay></video>
+        <video id="remote_video" autoplay></video>
+    </div>
+    <div id="button_div">
+        <button id="start_call">Start the call</button>
+    </div>
+    <div style="padding: 30px;">
+        <div style="height: 100px">
+            <canvas id="vu_meter"></canvas>
+        </div>
+    </div>
+</body>
+</html>

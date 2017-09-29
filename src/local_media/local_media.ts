@@ -122,7 +122,7 @@ export function LocalMedia(spec: { logger: ILogger; plugin: boolean }) {
 
                         (window as any).getUserMedia(constraints, resolve, (error2: any) => {
                             logger.error('Secondary attempt to acquire audio only failed');
-                            if (sl.getBrowser() === 'chrome') {
+                            if (sl.detectedBrowser === 'chrome') {
                                 if (permissionError(error2)) {
                                     logger.error(
                                         'Permission denied, calling GUM with dummy params ' +
