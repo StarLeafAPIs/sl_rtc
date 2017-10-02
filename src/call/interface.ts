@@ -16,13 +16,11 @@ export function createCall(
 ): Promise<SlCall> {
     let client = createSecureClient({
         url: 'https://' + portal + '/RPC2',
-        cookies: true,
+        cookies: true
     });
-
     if (!logger) {
         logger = DummyLogger();
     }
-
     return new Promise<SlCall>((resolve, reject) => {
         client.methodCall('getDialStringConfig', [undefined, target], (error, value) => {
             if (error) {
@@ -32,7 +30,7 @@ export function createCall(
                 let cfg = {
                     target: target,
                     display_name: display_name,
-                    websocket_address: 'wss://' + call_domain + ':443'
+                    call_domain: call_domain
                 };
                 let call = Call(cfg, logger as ILogger, false);
                 resolve(call);
@@ -77,6 +75,12 @@ export interface CallEventMap {
 
 export type MediaType = 'audio' | 'video';
 export type MuteState = { [k in MediaType]?: boolean };
+
+export type CallConfig = {
+    target: string;
+    call_domain: string;
+    display_name: string;
+};
 
 export interface SlCall {
     on<K extends keyof CallEventMap>(event: K, listener: CallEventMap[K]): void;

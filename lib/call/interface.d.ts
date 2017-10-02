@@ -40,6 +40,11 @@ export declare type MediaType = 'audio' | 'video';
 export declare type MuteState = {
     [k in MediaType]?: boolean;
 };
+export declare type CallConfig = {
+    target: string;
+    call_domain: string;
+    display_name: string;
+};
 export interface SlCall {
     on<K extends keyof CallEventMap>(event: K, listener: CallEventMap[K]): void;
     dial(options: MediaOptions): void;

@@ -13,7 +13,7 @@
     "dependencies": {
         "es6-promise": "^4.1.1",
         "js-cookie": "^2.1.4",
-        "jssip-sl": "^3.0.9",
+        "jssip-sl": "^3.0.11",
         "sdp-interop-sl": "^1.4.2",
         "sprintf": "^0.1.5",
         "webrtc-adapter": "^5.0.4",

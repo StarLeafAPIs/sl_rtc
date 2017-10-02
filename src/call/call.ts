@@ -7,7 +7,8 @@ import {
     MuteState,
     SlCall,
     CallEventMap,
-    PCState
+    PCState,
+    CallConfig
 } from './interface';
 import { StatsManager } from './stats_manager';
 import { SdpMunger, SdpData } from './sdp_munger';
@@ -21,17 +22,12 @@ type CallEventHandlers = {
     }
 };
 
-export type CallConfig = {
-    target: string;
-    websocket_address: string;
-    display_name: string;
-};
-
 export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean): SlCall {
     let config = {
         ...config_,
         plugin: false,
-        allowH264: sl.detectedBrowser === 'safari'
+        allowH264: sl.detectedBrowser === 'safari',
+        websocket_port: 443
     };
     let logger = base_logger.sub('CALL');
     let plugin = config.plugin;
@@ -168,18 +164,22 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     let muteStatus: MuteState;
 
     let dial = function(options: MediaOptions) {
+        let jssip_config = {
+            uri: 'unknown@' + config.call_domain,
+            sockets: [new JsSIP.WebSocketInterface('wss://' + config.call_domain + ':' + config.websocket_port)],
+            display_name: config.display_name,
+            register: false,
+            session_timers: false
+        }
         endReason = null;
         callEnding = false;
         logger.info('UserCall to: ', config.target);
-        if (config.target && (options.mediaConstraints || options.mediaStream)) {
-            userAgent = new JsSIP.UA({
-                ...config,
-                sockets: [new JsSIP.WebSocketInterface(config.websocket_address)]
-            });
+        if (options.mediaConstraints || options.mediaStream) {
+            userAgent = new JsSIP.UA(jssip_config);
             userAgent.on('connected', function() {
                 logger.info('Useragent connected');
                 handlers.notify('ringing');
-                callConnected(config.target, options);
+                callConnected(options);
             });
 
             userAgent.on('disconnected', function(event) {
@@ -250,7 +250,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
         }
     };
 
-    let callConnected = function(target: string, options: MediaOptions) {
+    let callConnected = function(options: MediaOptions) {
         window.clearTimeout(connectionTimeout);
         connected_ws = true;
         options.rtcOfferConstraints = {
@@ -259,7 +259,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
         };
         logger.info(
             'Sending sip invite to ',
-            target,
+            config.target,
             ' with options ',
             options.rtcOfferConstraints
         );
@@ -280,7 +280,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             }
         }
         sdpMunger.setLocalMedia(options.mediaStream);
-        userAgent.call('sip:' + target, options);
+        userAgent.call('sip:' + config.target, options);
     };
 
     let confirmed = function() {
