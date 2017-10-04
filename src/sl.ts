@@ -12,3 +12,13 @@ export interface ILogger {
 
 export var detectedBrowser = adapter.browserDetails.browser;
 export var detectedVersion = adapter.browserDetails.version;
+
+export function hasLocalMedia(stream?: MediaStream): { audio: boolean; video: boolean } {
+    if (!stream) {
+        return { audio: false, video: false };
+    }
+    return {
+        audio: stream.getAudioTracks().length !== 0,
+        video: stream.getVideoTracks().length !== 0
+    };
+}

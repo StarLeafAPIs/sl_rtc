@@ -1,7 +1,7 @@
 import * as SdpInterop from 'sdp-interop-sl';
 import { ILogger, detectedBrowser } from '../sl';
 import { PCState, MediaType } from './interface';
-import * as media from '../local_media/helpers';
+import * as sl from '../sl';
 import { sprintf } from 'sprintf';
 
 export type Orginator = 'remote' | 'local';
@@ -705,7 +705,7 @@ export function SdpMunger(
     };
 
     function setLocalMedia(stream?: MediaStream) {
-        local_media = media.hasLocalMedia(stream);
+        local_media = sl.hasLocalMedia(stream);
     }
 
     let that = {
