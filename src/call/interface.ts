@@ -1,4 +1,3 @@
-import { createSecureClient } from 'xmlrpc';
 import { Call } from './call';
 import { ILogger } from '../sl';
 
@@ -11,31 +10,38 @@ export type MediaOptions = {
 export function createCall(
     target: string,
     display_name: string,
-    logger?: ILogger,
-    portal = 'portal.starleaf.com'
+    logger?: ILogger
 ): Promise<SlCall> {
-    let client = createSecureClient({
-        url: 'https://' + portal + '/RPC2',
-        cookies: true
-    });
     if (!logger) {
-        logger = DummyLogger();
+        logger = new DummyLogger();
     }
     return new Promise<SlCall>((resolve, reject) => {
-        client.methodCall('getDialStringConfig', [undefined, target], (error, value) => {
-            if (error) {
-                reject(error);
-            } else {
-                let call_domain: string = value.org_calling_domain || value.orgCallingDomain;
+        let api_url =
+            'https://api.starleaf.com/v1/webrtc/org_domain' +
+            '?version=latest&target=' +
+            encodeURIComponent(target);
+        fetch(api_url, {
+            method: 'GET'
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw 'Request failed';
+                }
+            })
+            .then(json => {
                 let cfg = {
                     target: target,
                     display_name: display_name,
-                    call_domain: call_domain
+                    org_domain: json.org_domain
                 };
                 let call = Call(cfg, logger as ILogger, false);
                 resolve(call);
-            }
-        });
+            })
+            .catch((error: any) => {
+                reject(error);
+            });
     });
 }
 
@@ -70,7 +76,7 @@ export interface CallEventMap {
     removestream: (stream: MediaStream) => void;
     pcstate: (pc_state: PCState) => void;
     ending: () => void;
-    ended: () => void;
+    ended: (reason: CallEndReason) => void;
 }
 
 export type MediaType = 'audio' | 'video';
@@ -78,7 +84,7 @@ export type MuteState = { [k in MediaType]?: boolean };
 
 export type CallConfig = {
     target: string;
-    call_domain: string;
+    org_domain: string;
     display_name: string;
 };
 
@@ -92,14 +98,12 @@ export interface SlCall {
     removePCStream(stream: MediaStream): void;
 }
 
-function DummyLogger(): ILogger {
-    return {
-        debug: () => {},
-        info: () => {},
-        warn: () => {},
-        error: () => {},
-        sub: (prefix: string): ILogger => {
-            return DummyLogger();
-        }
-    };
+class DummyLogger implements ILogger {
+    debug(...args: any[]) {}
+    info(...args: any[]) {}
+    warn(...args: any[]) {}
+    error(...args: any[]) {}
+    sub(prefix: string) {
+        return this;
+    }
 }

@@ -4,7 +4,7 @@ export declare type MediaOptions = {
     mediaStream?: MediaStream;
     rtcOfferConstraints?: RTCOfferOptions;
 };
-export declare function createCall(target: string, display_name: string, logger?: ILogger, portal?: string): Promise<SlCall>;
+export declare function createCall(target: string, display_name: string, logger?: ILogger): Promise<SlCall>;
 export declare enum CallEndReason {
     USER_BYE = 0,
     REMOTE_BYE = 1,
@@ -34,7 +34,7 @@ export interface CallEventMap {
     removestream: (stream: MediaStream) => void;
     pcstate: (pc_state: PCState) => void;
     ending: () => void;
-    ended: () => void;
+    ended: (reason: CallEndReason) => void;
 }
 export declare type MediaType = 'audio' | 'video';
 export declare type MuteState = {
@@ -42,7 +42,7 @@ export declare type MuteState = {
 };
 export declare type CallConfig = {
     target: string;
-    call_domain: string;
+    org_domain: string;
     display_name: string;
 };
 export interface SlCall {

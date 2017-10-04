@@ -1,12 +1,11 @@
-import { createCall, SlCall } from '../lib/call/interface';
+import { createCall, SlCall, CallEndReason } from '../lib/call/interface';
 import { detectedBrowser } from '../lib/sl';
 import { VolumeMeter } from '../lib/vu_meter';
+import { Logger } from '../lib/logger';
 
 window.onload = function() {
-    let log_ = (...args: any[]) => {
-        console.log(...args);
-    };
-    log_('window loaded, browser = ', detectedBrowser);
+    let logger = new Logger('SL', () => {}, true);
+    logger.info('window loaded, browser = ', detectedBrowser);
 
     let local_video = document.getElementById('local_video') as HTMLVideoElement;
     let remote_video = document.getElementById('remote_video') as HTMLVideoElement;
@@ -16,55 +15,52 @@ window.onload = function() {
     let local_stream: MediaStream;
     const meeting_id = '7079230';
 
-
-    let logger = {
-        debug: log_,
-        info: log_,
-        warn: log_,
-        error: log_,
-        sub: (prefix: string) => {
-            return logger;
-        }
-    };
-
     navigator.mediaDevices
         .getUserMedia({ audio: true, video: true })
         .then(stream => {
             local_stream = stream;
             local_video.srcObject = stream;
-            log_('Got local stream', local_stream);
+            logger.info('Got local stream', local_stream);
             local_video.play();
             let vu = VolumeMeter(audio_ctx, canvas);
             vu.start(stream);
         })
         .catch(error => {
-            console.log('GUM request failed: ', error);
+            logger.error('GUM request failed: ', error);
         });
 
-    let call_button = document.getElementById('start_call') as HTMLButtonElement;
-    call_button.addEventListener('click', () => {
-        call_button.style.display = 'none';
+    let start_call_button = document.getElementById('start_call') as HTMLButtonElement;
+    let end_call_button = document.getElementById('end_call') as HTMLButtonElement;
+    start_call_button.addEventListener('click', () => {
+        start_call_button.style.display = 'none';
         createCall(
             meeting_id,
             'Example WebRTC client',
-            logger,
-            'portal.starleaf.com'
+            logger
         ).then((call: SlCall) => {
             call.on('addstream', (remote_stream: MediaStream) => {
-                log_('SlCall::addstream', remote_stream);
+                logger.debug('SlCall::addstream', remote_stream);
                 remote_video.srcObject = remote_stream;
             });
-            call.on('ended', () => {
-                log_('SlCall::ended');
-                call_button.style.display = null;
+            call.on('ringing', () => {
+                logger.debug('SlCall::ringing');
+                end_call_button.style.display = null;
+                end_call_button.onclick = () => {
+                    call.hangup();
+                }
+            })
+            call.on('ended', (reason: CallEndReason) => {
+                logger.debug('SlCall::ended', reason);
+                start_call_button.style.display = null;
+                end_call_button.style.display = 'none';
             })
             call.dial({
                 mediaStream: local_stream
             });
         })
-        .catch((error) => {
-            log_('Failed to setup call: ', error);
-            call_button.style.display = null;
+        .catch((error: any) => {
+            logger.error('Failed to setup call: ', error);
+            start_call_button.style.display = null;
         })
     })
 };

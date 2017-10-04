@@ -165,8 +165,8 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
 
     let dial = function(options: MediaOptions) {
         let jssip_config = {
-            uri: 'unknown@' + config.call_domain,
-            sockets: [new JsSIP.WebSocketInterface('wss://' + config.call_domain + ':' + config.websocket_port)],
+            uri: 'unknown@' + config.org_domain,
+            sockets: [new JsSIP.WebSocketInterface('wss://' + config.org_domain + ':' + config.websocket_port)],
             display_name: config.display_name,
             register: false,
             session_timers: false
