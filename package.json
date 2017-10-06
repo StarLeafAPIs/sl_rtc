@@ -2,6 +2,10 @@
     "name": "sl_rtc",
     "version": "0.1.0",
     "description": "StarLeaf WebRTC calling",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/StarLeafAPIs/sl_rtc"
+    },
     "main": "lib/index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
