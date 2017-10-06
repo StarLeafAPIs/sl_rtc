@@ -13,14 +13,10 @@ export function VolumeMeter(
     let ticks = 0;
     let vol_state = VolState.OK;
 
-    let { canvas_ctx, container } = (() => {
-        let ctx = canvas.getContext('2d');
-        let container = canvas.parentNode as HTMLElement;
-        if (!ctx || !container) {
-            throw 'Error creating canvas context';
-        }
-        return { canvas_ctx: ctx, container: container };
-    })();
+    let canvas_ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    if (!canvas_ctx) {
+        throw 'Error creating canvas context';
+    }
 
     let width = 0;
     let height = 0;
@@ -63,8 +59,8 @@ export function VolumeMeter(
         }
 
         analyser.getByteFrequencyData(data_array);
-        let WIDTH = container.clientWidth;
-        let HEIGHT = container.clientHeight;
+        let WIDTH = canvas.clientWidth;
+        let HEIGHT = canvas.clientHeight;
 
         if (width != WIDTH || height != HEIGHT) {
             width = WIDTH;

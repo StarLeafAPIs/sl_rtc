@@ -1,9 +1,4 @@
 import { ILogger } from '../sl';
-export declare type MediaOptions = {
-    mediaConstraints?: MediaStreamConstraints;
-    mediaStream?: MediaStream;
-    rtcOfferConstraints?: RTCOfferOptions;
-};
 export declare function createCall(target: string, display_name: string, logger?: ILogger): Promise<SlCall>;
 export declare enum CallEndReason {
     USER_BYE = 0,
@@ -18,7 +13,6 @@ export declare enum CallEndReason {
     SIP_ERROR = 9,
     INTERNAL_ERROR = 10,
     UNAVAILABLE = 11,
-    PLUGIN_CRASH = 12,
 }
 export declare enum PCState {
     SEND = 0,
@@ -29,10 +23,10 @@ export interface CallEventMap {
     ringing: () => void;
     in_call: () => void;
     renegotiated: () => void;
-    audioonly: (is_audio_only: boolean) => void;
-    addstream: (stream: MediaStream) => void;
-    removestream: (stream: MediaStream) => void;
-    pcstate: (pc_state: PCState) => void;
+    audio_only: (is_audio_only: boolean) => void;
+    add_stream: (stream: MediaStream) => void;
+    remove_stream: (stream: MediaStream) => void;
+    pc_state: (pc_state: PCState) => void;
     ending: () => void;
     ended: (reason: CallEndReason) => void;
 }
@@ -40,14 +34,9 @@ export declare type MediaType = 'audio' | 'video';
 export declare type MuteState = {
     [k in MediaType]?: boolean;
 };
-export declare type CallConfig = {
-    target: string;
-    org_domain: string;
-    display_name: string;
-};
 export interface SlCall {
     on<K extends keyof CallEventMap>(event: K, listener: CallEventMap[K]): void;
-    dial(options: MediaOptions): void;
+    dial(local_stream: MediaStream): void;
     hangup(): void;
     mute(mute: MuteState): boolean;
     isMuted(): MuteState;

@@ -1,5 +1,12 @@
 export declare const levels: string[];
-export declare class Logger {
+export interface ILogger {
+    debug(...args: any[]): void;
+    info(...args: any[]): void;
+    warn(...args: any[]): void;
+    error(...args: any[]): void;
+    sub: (prefix: string) => ILogger;
+}
+export declare class Logger implements ILogger {
     module: string;
     output: (msg: string) => any;
     consoleLogging: boolean;

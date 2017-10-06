@@ -1,7 +1,7 @@
-import { createCall, SlCall, CallEndReason } from '../lib/call/interface';
-import { detectedBrowser } from '../lib/sl';
-import { VolumeMeter } from '../lib/vu_meter';
-import { Logger } from '../lib/logger';
+import { createCall, SlCall, CallEndReason } from '../lib/index';
+import { detectedBrowser } from '../lib/index';
+import { VolumeMeter } from '../lib/index';
+import { Logger } from '../lib/index';
 
 window.onload = function() {
     let logger = new Logger('SL', () => {}, true);
@@ -38,7 +38,7 @@ window.onload = function() {
             'Example WebRTC client',
             logger
         ).then((call: SlCall) => {
-            call.on('addstream', (remote_stream: MediaStream) => {
+            call.on('add_stream', (remote_stream: MediaStream) => {
                 logger.debug('SlCall::addstream', remote_stream);
                 remote_video.srcObject = remote_stream;
             });
@@ -54,13 +54,11 @@ window.onload = function() {
                 start_call_button.style.display = null;
                 end_call_button.style.display = 'none';
             })
-            call.dial({
-                mediaStream: local_stream
-            });
+            call.dial(local_stream);
         })
         .catch((error: any) => {
             logger.error('Failed to setup call: ', error);
             start_call_button.style.display = null;
-        })
+        });
     })
 };

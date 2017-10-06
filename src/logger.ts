@@ -6,7 +6,15 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const indent = 2;
 const maxdepth = 4; // maximum depth it will recurse through an objects properties
 
-export class Logger {
+export interface ILogger {
+    debug(...args: any[]): void;
+    info(...args: any[]): void;
+    warn(...args: any[]): void;
+    error(...args: any[]): void;
+    sub: (prefix: string) => ILogger;
+}
+
+export class Logger implements ILogger {
     module: string;
     output: (msg: string) => any;
     consoleLogging: boolean;
