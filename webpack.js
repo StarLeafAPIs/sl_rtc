@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = {
     devtool: 'inline-source-map',
-    entry: './example/example.ts',
+    entry: './examples/example.ts',
     resolve: {
         extensions: ['.ts', '.js'],
         plugins: [new TsConfigPathsPlugin()]
@@ -30,6 +30,6 @@ module.exports = {
     ],
     output: {
         filename: 'example.js',
-        path: path.join(__dirname, 'example')
+        path: path.join(__dirname, 'examples')
     }
 };

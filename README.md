@@ -13,7 +13,9 @@ StarLeaf's [WebRTC webpage]().
 
 ## API
 
-See the [example](/example/example.html) for a simple website using this library.
+See the [web example](/examples/web/index.html) for a simple website using this library.
+See the [electron example](/examples/electron) for a simple electron app using this library.
+
 The main exports are defined in [index.ts](/src/index.ts). The compiled [index.js](/lib/index.js)
 is the entry point for the npm package.
 
@@ -26,7 +28,7 @@ All the example code here is in typescript.
 import { createCall, SlCall } from 'sl_rtc';
 
 function myStarLeafCall(local_stream: MediaStream) {
-    createCall('demo@starleaf.com', 'MyWebsiteClient')
+    createCall('demo@starleaf.com', 'My Name')
         .then((call: SlCall) => {
             // add event handlers
             call.on('addstream', (remote_stream) => {
@@ -307,8 +309,9 @@ let vu_meter = VolumeMeter(ctx, canvas, (state: VolState) => {
 ```
 
 ### Logger
-Simple logger class. Takes a callback which it calls with each processed log lines.
-The log lines are timestamped.
+Simple logger class. Takes a callback, which it calls with each processed log line.
+The log lines are timestamped in UTC. You can pass any number of arguments,
+which can be any type. Object properties are logged on seperate lines, with the message indented.
 ```ts
 let log_buffer: string[] = [];
 let my_logger = new Logger(
@@ -318,8 +321,18 @@ let my_logger = new Logger(
     },
     true // enable console logging
 );
+let my_sub_logger = my_logger.sub('CALL');
+let target = 'demo@starleaf.com'
+my_sub_logger.info('Dialing', target);
 
-//example line
-// I 2017 Oct 6 13:36:34.325 RTC/CALL        Dialling: rob.taylor+botnet@starleaf.com\n
+//output
+// I 2017 Oct 6 13:36:34.325 RTC/CALL        Dialing: demo@starleaf.com\n
+
+my_sub_logger.info('object', {
+    hello: 'world'
+})
+
+// I 2017 Oct 6 13:36:34.333 RTC/CALL        object\n
+// I 2017 Oct 6 13:36:34.333 RTC/CALL          hello: world\n
 ```
 

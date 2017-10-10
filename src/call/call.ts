@@ -168,9 +168,12 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
         if (local_stream.getVideoTracks().length > 1)
             throw 'Local stream must have 0 or 1 video tracks';
         if (local_stream.getVideoTracks().length === 1) {
-            let settings = local_stream.getVideoTracks()[0].getSettings();
-            if (!settings.width || settings.width > 1280) throw 'Video track width > 1280px';
-            if (!settings.height || settings.height > 720) throw 'Video track height > 720px';
+            let track = local_stream.getVideoTracks()[0];
+            if (track.getSettings) {
+                let settings = track.getSettings();
+                if (!settings.width || settings.width > 1280) throw 'Video track width > 1280px';
+                if (!settings.height || settings.height > 720) throw 'Video track height > 720px';
+            }
         }
 
         let jssip_config = {
@@ -449,14 +452,15 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     };
 
     let addPCStream = function(stream: MediaStream) {
-        if (stream.getAudioTracks().length !== 0)
-            throw 'PC stream must have no audio track';
-        if (stream.getVideoTracks().length > 1)
-            throw 'PC stream must have 0 or 1 video tracks';
+        if (stream.getAudioTracks().length !== 0) throw 'PC stream must have no audio track';
+        if (stream.getVideoTracks().length > 1) throw 'PC stream must have 0 or 1 video tracks';
         if (stream.getVideoTracks().length === 1) {
-            let settings = stream.getVideoTracks()[0].getSettings();
-            if (!settings.width || settings.width > 1920) throw 'Video track width > 1920px';
-            if (!settings.height || settings.height > 1088) throw 'Video track height > 1088px';
+            let track = stream.getVideoTracks()[0];
+            if (track.getSettings) {
+                let settings = track.getSettings();
+                if (!settings.width || settings.width > 1920) throw 'Video track width > 1920px';
+                if (!settings.height || settings.height > 1088) throw 'Video track height > 1088px';
+            }
         }
 
         if (canSwitchStreams(stream)) {

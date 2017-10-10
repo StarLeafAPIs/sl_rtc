@@ -2,10 +2,11 @@ import { createCall, SlCall, CallEndReason } from '../lib/index';
 import { detectedBrowser } from '../lib/index';
 import { VolumeMeter } from '../lib/index';
 import { Logger } from '../lib/index';
+import { detectedVersion } from '../lib/sl';
 
 window.onload = function() {
     let logger = new Logger('SL', () => {}, true);
-    logger.info('window loaded, browser = ', detectedBrowser);
+    logger.info('window loaded, browser = ', detectedBrowser, detectedVersion);
 
     let local_video = document.getElementById('local_video') as HTMLVideoElement;
     let remote_video = document.getElementById('remote_video') as HTMLVideoElement;
