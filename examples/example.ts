@@ -14,7 +14,6 @@ window.onload = function() {
     let audio_ctx = new AudioContext();
 
     let local_stream: MediaStream;
-    const meeting_id = '7079230';
 
     navigator.mediaDevices
         .getUserMedia({ audio: true, video: true })
@@ -33,9 +32,10 @@ window.onload = function() {
     let start_call_button = document.getElementById('start_call') as HTMLButtonElement;
     let end_call_button = document.getElementById('end_call') as HTMLButtonElement;
     start_call_button.addEventListener('click', () => {
+        let target = (document.getElementById('target') as HTMLInputElement).value;
         start_call_button.style.display = 'none';
         createCall(
-            meeting_id,
+            target,
             'Example WebRTC client',
             logger
         ).then((call: SlCall) => {
