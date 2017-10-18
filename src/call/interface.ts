@@ -4,14 +4,18 @@ import { ILogger } from '../sl';
 export function createCall(
     target: string,
     display_name: string,
-    logger?: ILogger
+    logger?: ILogger,
+    api_host?: string
 ): Promise<SlCall> {
     if (!logger) {
         logger = new DummyLogger();
     }
+    if (!api_host) {
+        api_host = 'api.starleaf.com'
+    }
     return new Promise<SlCall>((resolve, reject) => {
         let api_url =
-            'https://api.starleaf.com/v1/webrtc/org_domain' +
+            'https://' + api_host + '/v1/webrtc/org_domain' +
             '?version=latest&target=' +
             encodeURIComponent(target);
         fetch(api_url, {

@@ -11,37 +11,69 @@
             padding: 0;
             box-sizing: border-box;
         }
-        html, body {
+
+        html,
+        body {
             width: 100%;
         }
+
         html {
             height: 100%;
         }
+
         body {
             min-height: 100%;
+            padding: 20px;
         }
+
         #vid_div {
             height: 400px;
+            display: flex;
         }
+
+        #vid_div > div {
+            min-width: 400px;
+            position: relative;
+            flex-grow: 1;
+            padding: 0 10px;
+        }
+
         video {
-            display: inline-block;
-            width: 50%;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            background: black;
         }
-        #button_div > * {
+
+        #button_div>* {
             padding: 30px;
         }
     </style>
 </head>
 
 <body>
-    <div id="vid_div" style="display: flex;">
-        <video id="local_video" muted autoplay></video>
-        <video id="remote_video" autoplay></video>
+    <div id="vid_div">
+        <div>
+            <h3>Your camera</h3>
+            <video id="local_video" muted autoplay></video>
+        </div>
+        <div>
+            <h3>Remote video</h3>
+            <video id="remote_video" autoplay></video>
+        </div>
+        <div>
+            <h3>Remote Screenshare</h3>
+            <video id="remote_pc_video" autoplay></video>
+        </div>
     </div>
     <div id="button_div">
         <div>
             <input type="text" id="target" placeholder="Target" value="7079230">
             <label for="target">Input a meeting ID, or email address of a StarLeaf user</label>
+        </div>
+        <div>
+            <input type="checkbox" id="use_beta">
+            <label for="use_beta">Use the StarLeaf beta cloud instead of the live cloud</label>
         </div>
         <div>
             <button id="start_call">Start the call</button>
@@ -51,5 +83,9 @@
     <div style="padding: 30px;">
         <canvas id="vu_meter" style="height: 100px; width: 100%;"></canvas>
     </div>
+    <div id="log_div">
+        <h3>Log output</h3>
+    </div>
 </body>
+
 </html>

@@ -1,5 +1,5 @@
 import { ILogger } from '../sl';
-export declare function createCall(target: string, display_name: string, logger?: ILogger): Promise<SlCall>;
+export declare function createCall(target: string, display_name: string, logger?: ILogger, api_host?: string): Promise<SlCall>;
 export declare enum CallEndReason {
     USER_BYE = 0,
     REMOTE_BYE = 1,

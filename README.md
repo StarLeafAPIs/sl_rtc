@@ -53,7 +53,7 @@ navigator.mediaDevices
 
 ## createCall
 ```ts
-function createCall(target: string, display_name: string, logger?: ILogger): Promise<SlCall>
+function createCall(target: string, display_name: string, logger?: ILogger, api_hostname?: string): Promise<SlCall>
 ```
 
 `target` is a valid StarLeaf video address
@@ -68,6 +68,9 @@ where you can find out how to find users and schedule meetings programmatically.
 
 `logger` is optional. See the definition of `ILogger` in [logger.ts](/src/logger.ts) if you
 wish to provide your own logger. The default is no logging.
+
+`api_hostname` lets you specify the hostname of the StarLeaf api service to connect to. Defaults to 
+`api.starleaf.com`. Beta testing use only.
 
 `createCall` asks StarLeaf to validate the target address, and returns a Promise that
 resolves to an `SlCall` object. When the promise resolves, you'll need to add a few event
