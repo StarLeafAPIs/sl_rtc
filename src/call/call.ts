@@ -197,10 +197,8 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             callConnected(local_stream);
         });
 
-        userAgent.on('disconnected', function(event) {
-            logger.info('Useragent disconnected');
-            userAgentDisconnect(event);
-        });
+        userAgent.on('disconnected', userAgentDisconnect);
+
         userAgent.on('newRTCSession', function(e) {
             rtcSession = e.session as JsSIP.RtcSession;
             muteStatus = rtcSession.isMuted();
@@ -293,7 +291,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
         handlers.notify('renegotiated');
     };
 
-    // this isn't called when the use hangs up.
+    // this isn't called when the user hangs up.
     let translateSipEvent = function(event: any) {
         let r = CallEndReason;
         if (event && event.originator && event.cause) {
@@ -373,7 +371,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             } catch (ex) {
                 logger.warn('Exception stopping user agent after rtcSession ended/failed ', ex);
             }
-            if (!endReason && jssipEvent) {
+            if (endReason === null && jssipEvent) {
                 endReason = translateSipEvent(jssipEvent);
             }
         }
@@ -390,7 +388,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
                 logger.warn('Exception stopping user agent after disconnect ', ex);
             }
         }
-        if (!endReason) {
+        if (endReason === null) {
             if (connected_ws) {
                 logger.error('WS connection unexpected error');
                 endReason = CallEndReason.CONNECTION_ERROR;
