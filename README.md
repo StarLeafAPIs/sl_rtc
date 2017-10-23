@@ -13,7 +13,7 @@ StarLeaf's [WebRTC webpage]().
 
 ## API
 
-See the [web example](/examples/web/index.html) for a simple website using this library.
+See the [web example](https://starleafapis.github.io/sl_rtc/examples/web/index) for a simple website using this library.
 See the [electron example](/examples/electron) for a simple electron app using this library.
 
 The main exports are defined in [index.ts](/src/index.ts). The compiled [index.js](/lib/index.js)
@@ -69,7 +69,7 @@ where you can find out how to find users and schedule meetings programmatically.
 `logger` is optional. See the definition of `ILogger` in [logger.ts](/src/logger.ts) if you
 wish to provide your own logger. The default is no logging.
 
-`api_hostname` lets you specify the hostname of the StarLeaf api service to connect to. Defaults to 
+`api_hostname` lets you specify the hostname of the StarLeaf api service to connect to. Defaults to
 `api.starleaf.com`. Beta testing use only.
 
 `createCall` asks StarLeaf to validate the target address, and returns a Promise that
