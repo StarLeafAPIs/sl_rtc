@@ -1,16 +1,24 @@
-import { createCall, SlCall, CallEndReason } from '../lib/index';
-import { detectedBrowser } from '../lib/index';
-import { VolumeMeter } from '../lib/index';
-import { Logger } from '../lib/index';
-import { detectedVersion } from '../lib/sl';
+import {
+    createCall,
+    SlCall,
+    CallEndReason,
+    detectedBrowser,
+    detectedVersion,
+    VolumeMeter,
+    Logger
+} from '../lib/index';
 
 window.onload = function() {
     let log_div = document.getElementById('log_div') as HTMLDivElement;
-    let logger = new Logger('SL', (msg) => {
-        let line = document.createElement('div');
-        line.textContent = msg;
-        log_div.appendChild(line);
-    }, true);
+    let logger = new Logger(
+        'SL',
+        msg => {
+            let line = document.createElement('div');
+            line.textContent = msg;
+            log_div.appendChild(line);
+        },
+        true
+    );
     logger.info('window loaded, browser = ', detectedBrowser, detectedVersion);
 
     let local_video = document.getElementById('local_video') as HTMLVideoElement;
@@ -22,20 +30,23 @@ window.onload = function() {
     let local_stream: MediaStream;
 
     navigator.mediaDevices
-        .getUserMedia({ audio: true, video: {
-            width: {
-                ideal: 1280,
-                max: 1280
-            },
-            height: {
-                ideal: 720,
-                max: 720,
-            },
-            frameRate: {
-                ideal: 30,
-                max: 30
+        .getUserMedia({
+            audio: true,
+            video: {
+                width: {
+                    ideal: 1280,
+                    max: 1280
+                },
+                height: {
+                    ideal: 720,
+                    max: 720
+                },
+                frameRate: {
+                    ideal: 30,
+                    max: 30
+                }
             }
-        } })
+        })
         .then(stream => {
             local_stream = stream;
             local_video.srcObject = stream;
@@ -59,32 +70,33 @@ window.onload = function() {
             'Example WebRTC client',
             logger,
             use_beta ? 'api.beta.starleaf.com' : undefined
-        ).then((call: SlCall) => {
-            call.on('add_stream', (remote_stream: MediaStream) => {
-                logger.debug('SlCall::addstream', remote_stream);
-                if (remote_stream.id == 'sl-video-stream') {
-                    remote_video.srcObject = remote_stream;
-                } else if (remote_stream.id == 'sl-pc-stream') {
-                    remote_pc_video.srcObject = remote_stream;
-                }
-            });
-            call.on('ringing', () => {
-                logger.debug('SlCall::ringing');
-                end_call_button.style.display = null;
-                end_call_button.onclick = () => {
-                    call.hangup();
-                }
+        )
+            .then((call: SlCall) => {
+                call.on('add_stream', (remote_stream: MediaStream) => {
+                    logger.debug('SlCall::addstream', remote_stream);
+                    if (remote_stream.id == 'sl-video-stream') {
+                        remote_video.srcObject = remote_stream;
+                    } else if (remote_stream.id == 'sl-pc-stream') {
+                        remote_pc_video.srcObject = remote_stream;
+                    }
+                });
+                call.on('ringing', () => {
+                    logger.debug('SlCall::ringing');
+                    end_call_button.style.display = null;
+                    end_call_button.onclick = () => {
+                        call.hangup();
+                    };
+                });
+                call.on('ended', (reason: CallEndReason) => {
+                    logger.debug('SlCall::ended, reason: ', reason);
+                    start_call_button.style.display = null;
+                    end_call_button.style.display = 'none';
+                });
+                call.dial(local_stream);
             })
-            call.on('ended', (reason: CallEndReason) => {
-                logger.debug('SlCall::ended, reason: ' , reason);
+            .catch((error: any) => {
+                logger.error('Failed to setup call: ', error);
                 start_call_button.style.display = null;
-                end_call_button.style.display = 'none';
-            })
-            call.dial(local_stream);
-        })
-        .catch((error: any) => {
-            logger.error('Failed to setup call: ', error);
-            start_call_button.style.display = null;
-        });
-    })
+            });
+    });
 };
