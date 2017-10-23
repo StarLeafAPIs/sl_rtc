@@ -18,12 +18,10 @@ export function createCall(
         api_host = 'api.starleaf.com'
     }
     return new Promise<SlCall>((resolve, reject) => {
-        let api_url =
-            'https://' + api_host + '/v1/webrtc/org_domain' +
-            '?version=latest&target=' +
-            encodeURIComponent(target);
+        let api_url = 'https://' + api_host + '/v1/webrtc/org_domain?target=' +encodeURIComponent(target);
         fetch(api_url, {
-            method: 'GET'
+            method: 'GET',
+            cache: 'no-cache'
         })
             .then(response => {
                 if (response.ok) {
