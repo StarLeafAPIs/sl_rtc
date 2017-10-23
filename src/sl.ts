@@ -1,3 +1,7 @@
+/*
+* Copyright (c) StarLeaf Limited, 2017
+*/
+
 import adapter = require('webrtc-adapter');
 
 export var detectedBrowser = adapter.browserDetails.browser;

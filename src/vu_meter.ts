@@ -1,3 +1,7 @@
+/*
+* Copyright (c) StarLeaf Limited, 2017
+*/
+
 export const enum VolState {
     SILENT,
     OK,

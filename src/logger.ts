@@ -1,3 +1,7 @@
+/*
+* Copyright (c) StarLeaf Limited, 2017
+*/
+
 import { sprintf } from 'sprintf';
 export const levels = ['D', 'I', 'W', 'E'];
 

@@ -1,3 +1,7 @@
+/*
+* Copyright (c) StarLeaf Limited, 2017
+*/
+
 import { Call } from './call';
 import { ILogger } from '../sl';
 

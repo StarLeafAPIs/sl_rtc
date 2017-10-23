@@ -1,3 +1,7 @@
+/*
+* Copyright (c) StarLeaf Limited, 2017
+*/
+
 import * as SdpInterop from 'sdp-interop-sl';
 import { ILogger, detectedBrowser } from '../sl';
 import { PCState, MediaType } from './interface';

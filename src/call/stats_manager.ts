@@ -1,3 +1,7 @@
+/*
+* Copyright (c) StarLeaf Limited, 2017
+*/
+
 import * as sl from '../sl';
 import { ILogger } from '../sl';
 import * as SdpInterop from 'sdp-interop-sl';
