@@ -2,7 +2,7 @@
 * Copyright (c) StarLeaf Limited, 2017
 */
 
-import { sprintf } from 'sprintf';
+import { sprintf } from 'sprintf-js';
 export const levels = ['D', 'I', 'W', 'E'];
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

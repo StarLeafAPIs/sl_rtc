@@ -6,7 +6,7 @@ import * as sl from '../sl';
 import { ILogger } from '../sl';
 import * as SdpInterop from 'sdp-interop-sl';
 import { SdpData } from './sdp_munger';
-import { sprintf } from 'sprintf';
+import { sprintf } from 'sprintf-js';
 
 export function StatsManager(period: number, logger: ILogger) {
     let period_seconds = period / 1000.0;

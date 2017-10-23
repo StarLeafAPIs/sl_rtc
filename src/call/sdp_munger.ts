@@ -6,7 +6,7 @@ import * as SdpInterop from 'sdp-interop-sl';
 import { ILogger, detectedBrowser } from '../sl';
 import { PCState, MediaType } from './interface';
 import * as sl from '../sl';
-import { sprintf } from 'sprintf';
+import { sprintf } from 'sprintf-js';
 
 export type Orginator = 'remote' | 'local';
 export type SdpType = 'offer' | 'answer' | null;
