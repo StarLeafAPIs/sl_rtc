@@ -6,7 +6,7 @@ StarLeaf enables WebRTC calls to any user or meeting on StarLeaf.
 We're publishing a JavaScript library to allow you to add StarLeaf
 video calling to your own apps or websites. The library is written in
 typescript, and published as a node module. The same library is used to produce
-StarLeaf's [WebRTC webpage]().
+StarLeaf's WebRTC webpage.
 
 ## Installation
 `npm install sl_rtc`
