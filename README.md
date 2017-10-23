@@ -308,6 +308,11 @@ let vu_meter = VolumeMeter(ctx, canvas, (state: VolState) => {
         // reset warnings
     }
 });
+
+navigator.mediaDevices.getUserMedia({audio: true})
+    .then((stream: MediaStream) => {
+        vu_meter.start(stream);
+    });
 // NOTE. does not require the new keyword. It is a function returning an object, not a class.
 ```
 
