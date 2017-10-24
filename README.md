@@ -7,6 +7,7 @@ We're publishing a JavaScript library to allow you to add StarLeaf
 video calling to your own apps or websites. The library is written in
 typescript, and published as a node module. The same library is used to produce
 StarLeaf's WebRTC webpage.
+An [Example web page](https://starleafapis.github.io/sl_rtc/examples/web/index) can be found here.
 
 ## Installation
 `npm install sl_rtc`
@@ -144,7 +145,7 @@ Fired when a remote MediaStream is removed.
 ```ts
 call.on('remove_stream', (stream: MediaStream) {
     if (stream.id === 'sl-pc-stream') {
-        // stop local pc stream, if open.
+        // hide remote pc video
     }
 })
 ```
@@ -171,7 +172,7 @@ call.on('ended', (reason: CallEndReason) => {
 
 #### renegotiated
 SIP requires a re-invite SIP message to be sent when [ICE](https://en.wikipedia.org/wiki/Interactive_Connectivity_Establishment)
-has completed. This is event is fired after that process is complete.
+has completed. This event is fired after that process is complete.
 After this event has fired, you may add a secondary video stream to the call - but not before!
 ```ts
 let allow_start_screenshare = false;
@@ -242,7 +243,7 @@ if (call.isMuted().audio) {
 Add a MediaStream containing one video track only to this call. StarLeaf will treat this
 as the user sharing their screen, though you are free to pass any secondary video stream
 you like in.
-This video stream must
+This video stream must be
 * At most 12 frames per second
 * At most 1920 pixels wide
 * At most 1088 pixels high
@@ -308,18 +309,18 @@ let vu_meter = VolumeMeter(ctx, canvas, (state: VolState) => {
         // reset warnings
     }
 });
+// NOTE. does not require the new keyword. It is a function returning an object, not a class.
 
 navigator.mediaDevices.getUserMedia({audio: true})
     .then((stream: MediaStream) => {
         vu_meter.start(stream);
     });
-// NOTE. does not require the new keyword. It is a function returning an object, not a class.
 ```
 
 ### Logger
 Simple logger class. Takes a callback, which it calls with each processed log line.
 The log lines are timestamped in UTC. You can pass any number of arguments,
-which can be any type. Object properties are logged on seperate lines, with the message indented.
+which can be Objects, strings, or numbers. Object properties are logged on seperate lines, with the message indented.
 ```ts
 let log_buffer: string[] = [];
 let my_logger = new Logger(
