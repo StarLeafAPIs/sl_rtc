@@ -25,7 +25,14 @@ window.onload = function() {
     let remote_video = document.getElementById('remote_video') as HTMLVideoElement;
     let remote_pc_video = document.getElementById('remote_pc_video') as HTMLVideoElement;
     let canvas = document.getElementById('vu_meter') as HTMLCanvasElement;
-    let audio_ctx = new AudioContext();
+    let audio_ctx: AudioContext | undefined;
+    if (typeof AudioContext !== 'undefined') {
+        audio_ctx = new AudioContext();
+    } else if (typeof (window as any).webkitAudioContext !== 'undefined') {
+        audio_ctx = new (window as any).webkitAudioContext();
+    } else {
+        logger.warn('No audio context available, not showing vu-meter');
+    }
 
     let local_stream: MediaStream;
 
@@ -52,8 +59,10 @@ window.onload = function() {
             local_video.srcObject = stream;
             logger.info('Got local stream', local_stream);
             local_video.play();
-            let vu = VolumeMeter(audio_ctx, canvas);
-            vu.start(stream);
+            if (audio_ctx) {
+                let vu = VolumeMeter(audio_ctx, canvas);
+                vu.start(stream);
+            }
         })
         .catch(error => {
             logger.error('GUM request failed: ', error);
