@@ -19,7 +19,7 @@
         "jssip-sl": "^3.0.11",
         "sdp-interop-sl": "^1.4.3",
         "sprintf-js": "^1.1.1",
-        "webrtc-adapter": "^5.0.4"
+        "webrtc-adapter": "^6.0.3"
     },
     "devDependencies": {
         "@types/sprintf-js": "^1.1.0",
