@@ -72,14 +72,10 @@ window.onload = function() {
     let end_call_button = document.getElementById('end_call') as HTMLButtonElement;
     start_call_button.addEventListener('click', () => {
         let target = (document.getElementById('target') as HTMLInputElement).value;
-        let use_beta = (document.getElementById('use_beta') as HTMLInputElement).checked;
+        let cloud_select = document.getElementById('cloud_select') as HTMLSelectElement;
+        let cloud_addr = cloud_select.options[cloud_select.selectedIndex].value;
         start_call_button.style.display = 'none';
-        createCall(
-            target,
-            'Example WebRTC client',
-            logger,
-            use_beta ? 'api.beta.starleaf.com' : undefined
-        )
+        createCall(target, 'Example WebRTC client', logger, cloud_addr)
             .then((call: SlCall) => {
                 call.on('add_stream', (remote_stream: MediaStream) => {
                     logger.debug('SlCall::addstream', remote_stream);

@@ -72,8 +72,11 @@
             <label for="target">Input a meeting ID, or email address of a StarLeaf user</label>
         </div>
         <div>
-            <input type="checkbox" id="use_beta">
-            <label for="use_beta">Use the StarLeaf beta cloud instead of the live cloud</label>
+            <select id="cloud_select">
+                <option value="api.starleaf.com" selected>Live</option>
+                <option value="api.beta.starleaf.com">Beta</option>
+                <option value="api.dev-net.starleaf.com">Dev</option>
+            </select>
         </div>
         <div>
             <button id="start_call">Start the call</button>
