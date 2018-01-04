@@ -667,6 +667,9 @@ export function SdpMunger(
     };
 
     // the callback is necessary as pc.getStats is not blocking.
+    // TODO(rdt): remove this logic when entire cloud is > capi 888.
+    // Post CAPI 888, the cloud sends the ICE re-invite and fixes up the candidates in the SDP
+    // rendering this work unnecessary.
     let onIceComplete = function(pc: RTCPeerConnection, audioOnly: boolean, callback: any) {
         let onChromeStats = function(report: any) {
             logger.debug('Parsing stats for ice re-invite info');

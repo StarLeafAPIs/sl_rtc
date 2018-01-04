@@ -34,7 +34,8 @@ export function createCall(
                 let cfg = {
                     target: target,
                     display_name: display_name,
-                    org_domain: json.org_domain
+                    org_domain: json.org_domain,
+                    capi_version: json.capi_version
                 };
                 let call = Call(cfg, logger as ILogger, false);
                 resolve(call);
