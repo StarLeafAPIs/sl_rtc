@@ -22,7 +22,7 @@
         "webrtc-adapter": "^6.1.0"
     },
     "devDependencies": {
-        "electron": "^1.8.1",
+        "electron": "^1.8.2-beta.4",
         "@types/sprintf-js": "^1.1.0",
         "awesome-typescript-loader": "^3.4.1",
         "clean-webpack-plugin": "^0.1.17",
