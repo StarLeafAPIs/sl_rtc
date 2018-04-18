@@ -6,12 +6,11 @@ export interface SdpData extends RTCSessionDescription {
     originator: Orginator;
     await: () => () => void;
 }
-export declare function SdpMunger(base_logger: ILogger, logSdp: boolean, plugin: boolean, allowH264: boolean): {
+export declare function SdpMunger(base_logger: ILogger, logSdp: boolean, allowH264: boolean): {
     mungeRemote: (data: SdpData) => void;
     mungeLocal: (data: SdpData) => void;
     isAudioOnly: (sdp: any) => boolean;
     getPcState: (data: SdpData) => PCState;
-    restartPC: (data: SdpData, peer_con: RTCPeerConnection, callback: any, error: any) => void;
     onIceComplete: (pc: RTCPeerConnection, audioOnly: boolean, callback: any) => void;
     setLocalMedia: (stream?: MediaStream | undefined) => void;
     stop: () => void;
