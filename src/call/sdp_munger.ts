@@ -2,14 +2,14 @@
 * Copyright (c) StarLeaf Limited, 2017
 */
 
-import * as SdpInterop from 'sdp-interop-sl';
-import { ILogger, detectedBrowser } from '../sl';
-import { PCState, MediaType } from './interface';
-import * as sl from '../sl';
-import { sprintf } from 'sprintf-js';
+import * as SdpInterop from "sdp-interop-sl";
+import { ILogger, detectedBrowser } from "../sl";
+import { PCState, MediaType } from "./interface";
+import * as sl from "../sl";
+import { sprintf } from "sprintf-js";
 
-export type Orginator = 'remote' | 'local';
-export type SdpType = 'offer' | 'answer' | null;
+export type Orginator = "remote" | "local";
+export type SdpType = "offer" | "answer" | null;
 
 export interface SdpData extends RTCSessionDescription {
     originator: Orginator;
@@ -18,20 +18,16 @@ export interface SdpData extends RTCSessionDescription {
 
 type IceCandidates = { [k in Orginator]: any };
 
-export function SdpMunger(
-    base_logger: ILogger,
-    logSdp: boolean,
-    allowH264: boolean
-) {
+export function SdpMunger(base_logger: ILogger, logSdp: boolean, allowH264: boolean) {
     let min_video_bps = 200 * 1000;
     let max_bps_without_bwe = 512 * 1000;
     let bwe_enabled = true;
 
-    let logger = base_logger.sub('SDP');
+    let logger = base_logger.sub("SDP");
     let sdpinterop: any = null;
     let browser_name = detectedBrowser;
     // Only firefox and edge don't use plan B SDP.
-    if (browser_name !== 'firefox' && browser_name !== 'edge') {
+    if (browser_name !== "firefox" && browser_name !== "edge") {
         sdpinterop = SdpInterop.InteropChrome();
     }
 
@@ -72,9 +68,9 @@ export function SdpMunger(
     }
 
     let checkContent = function(invalids: any, contentType: string) {
-        if (typeof invalids !== 'undefined') {
+        if (typeof invalids !== "undefined") {
             for (let i = 0; i < invalids.length; i++) {
-                if (invalids[i].value === 'content:' + contentType) {
+                if (invalids[i].value === "content:" + contentType) {
                     return true;
                 }
             }
@@ -87,27 +83,24 @@ export function SdpMunger(
     let hackH264Level = function(mline: any) {
         if (mline.rtp) {
             mline.rtp.forEach(function(rtp: any) {
-                if (rtp.codec === 'H264' && mline.fmtp) {
+                if (rtp.codec === "H264" && mline.fmtp) {
                     for (let k = 0; k < mline.fmtp.length; k++) {
                         let fmtp = mline.fmtp[k];
                         if (fmtp.payload === rtp.payload) {
-                            let params = fmtp.config.split(';');
+                            let params = fmtp.config.split(";");
                             for (let i = 0; i < params.length; i++) {
-                                if (params[i].startsWith('profile-level-id')) {
-                                    let profile = parseInt(
-                                        params[i].split('=')[1].substr(0, 6),
-                                        16
-                                    );
+                                if (params[i].startsWith("profile-level-id")) {
+                                    let profile = parseInt(params[i].split("=")[1].substr(0, 6), 16);
                                     if (profile & 0x420000) {
                                         profile |= 0x004000;
-                                        log('hacked h264 profile level');
+                                        log("hacked h264 profile level");
                                     } else {
-                                        throw 'H.264 profile is not baseline';
+                                        throw "H.264 profile is not baseline";
                                     }
-                                    params[i] = 'profile-level-id=' + profile.toString(16);
+                                    params[i] = "profile-level-id=" + profile.toString(16);
                                 }
                             }
-                            fmtp.config = params.join(';');
+                            fmtp.config = params.join(";");
                         }
                     }
                 }
@@ -118,20 +111,20 @@ export function SdpMunger(
     // in the pbx. These are too low for 1080p, so screenshare fails. Hack them in here - the browser is perfectly
     // capable of receiving these parameters.
     let h264Params = [
-        { key: 'max-fs', value: 8192 },
-        { key: 'max-mbps', value: 245000 },
-        { key: 'max-dpb', value: 32768 }
+        { key: "max-fs", value: 8192 },
+        { key: "max-mbps", value: 245000 },
+        { key: "max-dpb", value: 32768 }
     ];
 
     let hackH264Params = function(mline: any) {
         if (mline.rtp) {
             mline.rtp.forEach(function(rtp: any) {
-                if (rtp.codec === 'H264' && mline.fmtp) {
+                if (rtp.codec === "H264" && mline.fmtp) {
                     for (let k = 0; k < mline.fmtp.length; k++) {
                         let fmtp = mline.fmtp[k];
                         if (fmtp.payload === rtp.payload) {
-                            let params = fmtp.config.split(';').map(function(param: string) {
-                                let split = param.split('=');
+                            let params = fmtp.config.split(";").map(function(param: string) {
+                                let split = param.split("=");
                                 return { key: split[0], value: split[1] };
                             });
                             h264Params.forEach(function(p) {
@@ -145,10 +138,10 @@ export function SdpMunger(
                             });
                             fmtp.config = params
                                 .map(function(p: any) {
-                                    return p.key + '=' + p.value;
+                                    return p.key + "=" + p.value;
                                 })
-                                .join(';');
-                            log('hacked h264 fmtp ', fmtp);
+                                .join(";");
+                            log("hacked h264 fmtp ", fmtp);
                         }
                     }
                 }
@@ -157,14 +150,14 @@ export function SdpMunger(
     };
 
     let removeH264 = function(mline: any) {
-        log('removing h264 from mline');
+        log("removing h264 from mline");
         let new_rtp: string[] = [];
         let new_fmtp: string[] = [];
         let new_rtcpFb: string[] = [];
         let h264_payloads: string[] = [];
         if (mline.rtp) {
             mline.rtp.forEach(function(rtp: any) {
-                if (rtp.codec !== 'H264') {
+                if (rtp.codec !== "H264") {
                     new_rtp.push(rtp);
                 } else {
                     h264_payloads.push(rtp.payload);
@@ -188,14 +181,14 @@ export function SdpMunger(
         mline.rtp = new_rtp;
         mline.fmtp = new_fmtp;
         mline.rtcpFb = new_rtcpFb;
-        if (mline.payloads && typeof mline.payloads === 'string') {
+        if (mline.payloads && typeof mline.payloads === "string") {
             let payloads: any[] = [];
-            mline.payloads.split(' ').forEach(function(pt: any) {
+            mline.payloads.split(" ").forEach(function(pt: any) {
                 if (h264_payloads.indexOf(String(pt)) === -1) {
                     payloads.push(pt);
                 }
             });
-            mline.payloads = payloads.join(' ');
+            mline.payloads = payloads.join(" ");
         }
     };
 
@@ -203,22 +196,19 @@ export function SdpMunger(
         let videoLine: any = null;
         let pcLine: any = null;
         session.media.forEach(function(line: any) {
-            if (line.type === 'video' && typeof line.invalid !== 'undefined') {
-                if (checkContent(line.invalid, 'main')) {
+            if (line.type === "video" && typeof line.invalid !== "undefined") {
+                if (checkContent(line.invalid, "main")) {
                     videoLine = line;
-                } else if (line.direction === 'recvonly' && checkContent(line.invalid, 'slides')) {
+                } else if (line.direction === "recvonly" && checkContent(line.invalid, "slides")) {
                     pcLine = line;
                 }
                 if (line.rtcpFb && line.bandwidth) {
                     bwe_enabled = line.rtcpFb.some(function(fb: any) {
-                        return fb.type === 'goog-remb';
+                        return fb.type === "goog-remb";
                     });
                     if (!bwe_enabled) {
                         logger.info(
-                            sprintf(
-                                'bwe disabled, hard capping send bandwidth to %d kbps',
-                                max_bps_without_bwe / 1000
-                            )
+                            sprintf("bwe disabled, hard capping send bandwidth to %d kbps", max_bps_without_bwe / 1000)
                         );
                         line.bandwidth[0].limit = max_bps_without_bwe;
                     }
@@ -240,13 +230,13 @@ export function SdpMunger(
                 }
             }
         }
-        if (browser_name !== 'firefox') {
+        if (browser_name !== "firefox") {
             // convert to AS attributes
             session.media.forEach(function(mline: any) {
                 if (mline.bandwidth && mline.bandwidth.length > 0) {
                     let b = mline.bandwidth[0];
-                    if (b.type === 'TIAS') {
-                        let bASline = { type: 'AS', limit: b.limit / 1000 };
+                    if (b.type === "TIAS") {
+                        let bASline = { type: "AS", limit: b.limit / 1000 };
                         mline.bandwidth.push(bASline);
                     }
                 }
@@ -255,17 +245,17 @@ export function SdpMunger(
     };
 
     let mungeRemote = function(data: SdpData) {
-        if (data.originator !== 'remote') {
-            throw 'local sdp input into mungeRemote';
+        if (data.originator !== "remote") {
+            throw "local sdp input into mungeRemote";
         }
-        log('recv u plan', deepCopy(data.sdp));
+        log("recv u plan", deepCopy(data.sdp));
         let session = parseSdp(data.sdp);
-        if (data.type === 'offer') {
+        if (data.type === "offer") {
             remoteOfferProtocols = [];
         }
         let num_mlines = session.media.length;
         session.media.forEach(function(mline: any, index: number, media: any) {
-            if (data.type === 'offer') {
+            if (data.type === "offer") {
                 remoteOfferProtocols.push(mline.protocol);
                 if (localOfferProtocols.length > index) {
                     mline.protocol = localOfferProtocols[index];
@@ -286,7 +276,7 @@ export function SdpMunger(
                         mline.iceUfrag = media[index - 1].iceUfrag;
                     }
                 }
-                if (mline.type === 'video') {
+                if (mline.type === "video") {
                     if (allowH264) {
                         hackH264Level(mline);
                     } else {
@@ -294,13 +284,13 @@ export function SdpMunger(
                     }
                     // If we have PC, remove send only before we squash mline into plan B
                     if (sdpinterop && !local_media.video && index === 1 && num_mlines > 2) {
-                        if (mline.direction === 'sendonly') {
+                        if (mline.direction === "sendonly") {
                             delete mline.direction;
                         }
                     }
                 }
             } else {
-                mline.direction = 'inactive';
+                mline.direction = "inactive";
             }
         });
         mungeBandwidth(session);
@@ -309,19 +299,16 @@ export function SdpMunger(
             // parse the stats SSRC from the U plan SDP
             let result = sdpinterop.toPlanB(data);
             data.sdp = result.sdp;
-            log('recv plan b ', deepCopy(data.sdp));
+            log("recv plan b ", deepCopy(data.sdp));
         }
     };
 
     let mungeLocal = function(data: SdpData) {
-        if (data.originator !== 'local') {
-            throw 'remote sdp input into mungeLocal';
+        if (data.originator !== "local") {
+            throw "remote sdp input into mungeLocal";
         }
         let session = parseSdp(data.sdp);
-        session.media.forEach(function(
-            mline: { type: MediaType; [key: string]: any },
-            index: number
-        ) {
+        session.media.forEach(function(mline: { type: MediaType; [key: string]: any }, index: number) {
             if (mline.port == 0) {
                 if (mline.rtcpMux) {
                     delete mline.rtcpMux;
@@ -331,8 +318,7 @@ export function SdpMunger(
                 }
             } else {
                 if (candidate.remote) {
-                    mline.remoteCandidates =
-                        '1 ' + candidate.remote.ipAddress + ' ' + candidate.remote.portNumber;
+                    mline.remoteCandidates = "1 " + candidate.remote.ipAddress + " " + candidate.remote.portNumber;
                 }
                 if (candidate.local) {
                     mline.connection.ip = candidate.local.ipAddress;
@@ -342,10 +328,10 @@ export function SdpMunger(
             if (mline.rtp) {
                 // We don't support DTMF with webrtc at the moment, and it's causing issues - see SW-11129
                 mline.rtp = mline.rtp.filter((rtp_line: any) => {
-                    return !(rtp_line.codec === 'telephone-event');
+                    return !(rtp_line.codec === "telephone-event");
                 });
             }
-            if (mline.type === 'video') {
+            if (mline.type === "video") {
                 if (allowH264) {
                     hackH264Params(mline);
                 } else {
@@ -354,7 +340,7 @@ export function SdpMunger(
             }
             if (sdpinterop && !local_media[mline.type] && index < 2) {
                 if (mline.ssrcGroups && mline.ssrcGroups.length > 1) {
-                    logger.warn('Chrome now has ssrcs for recvonly streams');
+                    logger.warn("Chrome now has ssrcs for recvonly streams");
                 } else {
                     // add some fake ssrcs for the main video.
                     // there may be other ssrcs for the PC.
@@ -363,14 +349,14 @@ export function SdpMunger(
                     if (!mline.sources) {
                         mline.sources = {};
                     }
-                    mline.sources[fake_ssrc_1] = { cname: 'fake' };
-                    mline.sources[fake_ssrc_2] = { cname: 'fake' };
-                    if (mline.type === 'audio') {
+                    mline.sources[fake_ssrc_1] = { cname: "fake" };
+                    mline.sources[fake_ssrc_2] = { cname: "fake" };
+                    if (mline.type === "audio") {
                         delete mline.direction;
                     }
                     mline.ssrcGroups = [
                         {
-                            semantics: 'FID',
+                            semantics: "FID",
                             ssrcs: [fake_ssrc_1, fake_ssrc_2]
                         }
                     ].concat(mline.ssrcGroups ? mline.ssrcGroups : []);
@@ -380,50 +366,47 @@ export function SdpMunger(
         data.sdp = writeSdp(session);
         if (sdpinterop) {
             // parse the stats SSRC from the U plan SDP
-            log('send plan b', deepCopy(data.sdp));
+            log("send plan b", deepCopy(data.sdp));
             let result = sdpinterop.toUnifiedPlan(data);
             data.sdp = result.sdp;
         }
         session = parseSdp(data.sdp);
 
-        if (data.type === 'offer') {
+        if (data.type === "offer") {
             localOfferProtocols = [];
         }
         let videoLines = 0;
-        session.media.forEach(function(
-            mline: { type: MediaType; [key: string]: any },
-            index: any
-        ) {
-            if (data.type === 'offer') {
+        session.media.forEach(function(mline: { type: MediaType; [key: string]: any }, index: any) {
+            if (data.type === "offer") {
                 localOfferProtocols.push(mline.protocol);
                 if (tcpMedia) {
-                    mline.protocol = 'TCP/DTLS/RTP/SAVPF';
+                    mline.protocol = "TCP/DTLS/RTP/SAVPF";
                 } else {
-                    mline.protocol = 'UDP/TLS/RTP/SAVPF';
+                    mline.protocol = "UDP/TLS/RTP/SAVPF";
                 }
             } else {
                 mline.protocol = remoteOfferProtocols[index];
             }
-            if (mline.type === 'video') {
+            if (mline.type === "video") {
                 if (!mline.invalid) {
                     mline.invalid = [];
                 }
                 if (videoLines++ === 0) {
-                    mline.invalid.push({ value: 'content:main' });
+                    mline.invalid.push({ value: "content:main" });
                     if (!local_media.video) {
-                        mline.direction = 'recvonly';
+                        mline.direction = "recvonly";
                     }
                 } else {
-                    if (!mline.direction || mline.direction !== 'recvonly') {
-                        mline.direction = 'sendonly';
+                    if (!mline.direction || mline.direction !== "recvonly") {
+                        mline.direction = "sendonly";
                     }
-                    mline.invalid.push({ value: 'content:slides' });
+                    mline.invalid.push({ value: "content:slides" });
                 }
             }
         });
         data.sdp = writeSdp(session);
 
-        log('send uplan', deepCopy(data.sdp));
+        log("send uplan", deepCopy(data.sdp));
     };
 
     let isAudioOnly = function(sdp: any) {
@@ -440,7 +423,7 @@ export function SdpMunger(
     };
 
     let getPcState = function(data: SdpData) {
-        let isLocal = data.originator === 'local';
+        let isLocal = data.originator === "local";
         let state = PCState.DISABLED;
         let session = parseSdp(data.sdp);
         let groups = session.groups;
@@ -449,25 +432,25 @@ export function SdpMunger(
             session.media.forEach(function(mline: any) {
                 if (mline.invalid && mline.invalid.length !== 0) {
                     mline.invalid.forEach(function(invalid: any) {
-                        if (invalid.value === 'content:slides') {
+                        if (invalid.value === "content:slides") {
                             if (mline.port !== 0) {
                                 if (isLocal) {
-                                    if (mline.direction === 'sendonly') {
+                                    if (mline.direction === "sendonly") {
                                         state = PCState.SEND;
                                     } else {
                                         state = PCState.RECV;
                                     }
                                 } else {
-                                    if (mline.direction === 'recvonly') {
+                                    if (mline.direction === "recvonly") {
                                         state = PCState.SEND;
                                     } else {
                                         state = PCState.RECV;
                                     }
                                 }
-                            } else if (data.type === 'offer') {
+                            } else if (data.type === "offer") {
                                 let in_bundle = mids.indexOf(mline.mid) !== -1;
                                 let bundle_only = mline.invalid.some((obj: any) => {
-                                    return obj.value === 'bundle-only';
+                                    return obj.value === "bundle-only";
                                 });
                                 if (in_bundle && bundle_only) {
                                     state = PCState.SEND;
@@ -483,9 +466,9 @@ export function SdpMunger(
 
     function processW3C(report: any) {
         // https://w3c.github.io/webrtc-stats/#transportstats-dict*
-        logger.debug('attempting to process W3C stats');
+        logger.debug("attempting to process W3C stats");
         report.forEach(function(obj: any) {
-            if (obj.type === 'transport' && !check_cands()) {
+            if (obj.type === "transport" && !check_cands()) {
                 let pair = report.get(obj.selectedCandidatePairId);
                 let local = report.get(pair.localCandidateId);
                 let remote = report.get(pair.remoteCandidateId);
@@ -497,45 +480,43 @@ export function SdpMunger(
                     ipAddress: remote.ip,
                     portNumber: remote.port
                 };
-                tcpMedia = local.protocol === 'tcp';
+                tcpMedia = local.protocol === "tcp";
             }
         });
         return check_cands();
     }
 
     function processOldChrome(obj: any, getter: any) {
-        if (obj.type === 'googComponent' || typeof obj.googComponent !== 'undefined') {
-            if (typeof obj.selectedCandidatePairId !== 'undefined') {
+        if (obj.type === "googComponent" || typeof obj.googComponent !== "undefined") {
+            if (typeof obj.selectedCandidatePairId !== "undefined") {
                 let cand_pair = getter(obj.selectedCandidatePairId);
-                if (cand_pair.googTransportType === 'tcp') {
-                    logger.debug(
-                        'Using tcp media detected via matching candidate pair id to component'
-                    );
+                if (cand_pair.googTransportType === "tcp") {
+                    logger.debug("Using tcp media detected via matching candidate pair id to component");
                     tcpMedia = true;
                 }
                 let c;
-                if (typeof cand_pair.remoteCandidateId !== 'undefined') {
+                if (typeof cand_pair.remoteCandidateId !== "undefined") {
                     c = getter(cand_pair.remoteCandidateId);
                     candidate.remote = c;
                 }
-                if (typeof cand_pair.localCandidateId !== 'undefined') {
+                if (typeof cand_pair.localCandidateId !== "undefined") {
                     c = getter(cand_pair.localCandidateId);
                     candidate.local = c;
                 }
             }
-        } else if (obj.type === 'googCandidatePair') {
-            if (obj.googActiveConnection === 'true' || obj.googActiveConnection === true) {
-                if (obj.googTransportType && obj.googTransportType === 'tcp') {
-                    logger.debug('Using tcp media detected via active googCandidatePair');
+        } else if (obj.type === "googCandidatePair") {
+            if (obj.googActiveConnection === "true" || obj.googActiveConnection === true) {
+                if (obj.googTransportType && obj.googTransportType === "tcp") {
+                    logger.debug("Using tcp media detected via active googCandidatePair");
                     tcpMedia = true;
                 }
                 if (!check_cands()) {
-                    let local = obj.googLocalAddress.split(':');
+                    let local = obj.googLocalAddress.split(":");
                     candidate.local = {
                         ipAddress: local[0],
                         portNumber: local[1]
                     };
-                    let remote = obj.googRemoteAddress.split(':');
+                    let remote = obj.googRemoteAddress.split(":");
                     candidate.remote = {
                         ipAddress: remote[0],
                         portNumber: remote[1]
@@ -550,15 +531,15 @@ export function SdpMunger(
     let parseChromiumStats = function(report: any) {
         try {
             if (processW3C(report)) {
-                logger.debug('Chrome W3C stats present, parsed candidates');
+                logger.debug("Chrome W3C stats present, parsed candidates");
                 return true;
             }
         } catch (ex) {
-            logger.warn('non W3C stats, try old chrome stat parsing');
+            logger.warn("non W3C stats, try old chrome stat parsing");
         }
         let getter: any;
-        if (typeof report.forEach !== 'undefined') {
-            logger.debug('map like stats');
+        if (typeof report.forEach !== "undefined") {
+            logger.debug("map like stats");
             getter = function(key: any) {
                 return report.get(key);
             };
@@ -578,17 +559,17 @@ export function SdpMunger(
 
     let parseFirefoxStats = function(report: any, audioOnly: boolean) {
         if (processW3C(report)) {
-            logger.debug('Firefox W3C stats present, parsed candidates');
+            logger.debug("Firefox W3C stats present, parsed candidates");
             return true;
         } else {
-            logger.warn('non W3C stats, try old firefox stat parsing');
+            logger.warn("non W3C stats, try old firefox stat parsing");
             report.forEach(function(obj: any) {
-                if (obj.type === 'candidatepair' || obj.type === 'candidate-pair') {
-                    if (obj.selected === true && obj.state === 'succeeded') {
+                if (obj.type === "candidatepair" || obj.type === "candidate-pair") {
+                    if (obj.selected === true && obj.state === "succeeded") {
                         let c;
                         c = report.get(obj.remoteCandidateId);
                         candidate.remote = c;
-                        if (c['transport'].toLowerCase() === 'tcp') {
+                        if (c["transport"].toLowerCase() === "tcp") {
                             tcpMedia = true;
                         }
                         c = report.get(obj.localCandidateId);
@@ -596,9 +577,9 @@ export function SdpMunger(
                     }
                 }
             });
-            let ready = report.get('inbound_rtp_audio_0')['ssrc'] !== '0';
+            let ready = report.get("inbound_rtp_audio_0")["ssrc"] !== "0";
             if (!audioOnly) {
-                ready = ready && report.get('inbound_rtp_video_1')['ssrc'] !== '0';
+                ready = ready && report.get("inbound_rtp_video_1")["ssrc"] !== "0";
             }
             return check_cands() && ready;
         }
@@ -616,27 +597,27 @@ export function SdpMunger(
     // rendering this work unnecessary.
     let onIceComplete = function(pc: RTCPeerConnection, audioOnly: boolean, callback: any) {
         let onChromeStats = function(report: any) {
-            logger.debug('Parsing stats for ice re-invite info');
+            logger.debug("Parsing stats for ice re-invite info");
             if (parseChromiumStats(report)) {
                 callback();
             } else {
-                logger.debug('Stats not present yet, setting timer');
+                logger.debug("Stats not present yet, setting timer");
                 setStatsTimer(pc, audioOnly, callback);
             }
         };
-        if (browser_name !== 'firefox') {
+        if (browser_name !== "firefox") {
             try {
                 (pc as any)
                     .getStats()
                     .then(onChromeStats)
                     .catch(function(error: any) {
-                        logger.error('Failed to get stats to check tcp media: ', error);
+                        logger.error("Failed to get stats to check tcp media: ", error);
                         callback();
                     });
             } catch (ex) {
                 // pc may not be a promise on IE/Safari/Old chrome
                 pc.getStats(null, onChromeStats, function() {
-                    logger.error('Failed to get stats to check tcp media');
+                    logger.error("Failed to get stats to check tcp media");
                     callback();
                 });
             }

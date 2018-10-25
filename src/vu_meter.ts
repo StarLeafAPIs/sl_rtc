@@ -8,18 +8,14 @@ export const enum VolState {
     LOUD
 }
 
-export function VolumeMeter(
-    audio_ctx: AudioContext,
-    canvas: HTMLCanvasElement,
-    onChange?: (state: VolState) => void
-) {
+export function VolumeMeter(audio_ctx: AudioContext, canvas: HTMLCanvasElement, onChange?: (state: VolState) => void) {
     let analyser: AnalyserNode | null = null;
     let ticks = 0;
     let vol_state = VolState.OK;
 
-    let canvas_ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+    let canvas_ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     if (!canvas_ctx) {
-        throw 'Error creating canvas context';
+        throw "Error creating canvas context";
     }
 
     let width = 0;
@@ -69,12 +65,12 @@ export function VolumeMeter(
         if (width != WIDTH || height != HEIGHT) {
             width = WIDTH;
             height = HEIGHT;
-            canvas.setAttribute('width', String(WIDTH));
-            canvas.setAttribute('height', String(HEIGHT));
+            canvas.setAttribute("width", String(WIDTH));
+            canvas.setAttribute("height", String(HEIGHT));
         }
         //repaint background
         canvas_ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        canvas_ctx.fillStyle = 'rgb(255, 255, 255)';
+        canvas_ctx.fillStyle = "rgb(255, 255, 255)";
         canvas_ctx.fillRect(0, 0, WIDTH, HEIGHT);
         // ignore the last half of the points, we don't get much of the higher frequencies.
         let num_points = Math.floor(buffer_length / 6);
@@ -89,11 +85,11 @@ export function VolumeMeter(
         if (vol_state === VolState.SILENT) {
             return;
         } else if (vol_state === VolState.LOUD) {
-            gradient.addColorStop(0, 'rgba(202, 1, 85, 0.8)');
-            gradient.addColorStop(1, 'rgba(202, 1, 85, 0.2)');
+            gradient.addColorStop(0, "rgba(202, 1, 85, 0.8)");
+            gradient.addColorStop(1, "rgba(202, 1, 85, 0.2)");
         } else {
-            gradient.addColorStop(0, 'rgba(67, 164, 22, 0.3)');
-            gradient.addColorStop(1, 'rgba(1, 222, 197, 0.6)');
+            gradient.addColorStop(0, "rgba(67, 164, 22, 0.3)");
+            gradient.addColorStop(1, "rgba(1, 222, 197, 0.6)");
         }
         canvas_ctx.fillStyle = gradient;
         for (let k = 0; k < 3; k++) {
@@ -101,7 +97,7 @@ export function VolumeMeter(
             canvas_ctx.beginPath();
             canvas_ctx.moveTo(0, HEIGHT);
             for (let i = 0; i < num_points; i++) {
-                let height = data_array[i + offset] / 256.0 * HEIGHT;
+                let height = (data_array[i + offset] / 256.0) * HEIGHT;
                 canvas_ctx.lineTo(i * spacing, HEIGHT - height);
             }
             canvas_ctx.lineTo(num_points * spacing, HEIGHT);

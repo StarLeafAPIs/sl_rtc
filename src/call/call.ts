@@ -30,7 +30,7 @@ const cc_sends_ice_reinvite_min_version = 988;
 export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean): SlCall {
     let config = {
         ...config_,
-        allowH264: sl.detectedBrowser === 'safari',
+        allowH264: true,
         websocket_port: 443
     };
     let logger = base_logger.sub('CALL');

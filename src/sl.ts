@@ -2,7 +2,7 @@
 * Copyright (c) StarLeaf Limited, 2017
 */
 
-import adapter = require('webrtc-adapter');
+import adapter = require("webrtc-adapter");
 
 export var detectedBrowser = adapter.browserDetails.browser;
 export var detectedVersion = adapter.browserDetails.version;
@@ -17,4 +17,4 @@ export function hasLocalMedia(stream?: MediaStream): { audio: boolean; video: bo
     };
 }
 
-export {ILogger, Logger} from './logger';
+export { ILogger, Logger } from "./logger";

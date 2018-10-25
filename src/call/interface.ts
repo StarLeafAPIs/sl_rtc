@@ -2,32 +2,27 @@
 * Copyright (c) StarLeaf Limited, 2017
 */
 
-import { Call } from './call';
-import { ILogger } from '../sl';
+import { Call } from "./call";
+import { ILogger } from "../sl";
 
-export function createCall(
-    target: string,
-    display_name: string,
-    logger?: ILogger,
-    api_host?: string
-): Promise<SlCall> {
+export function createCall(target: string, display_name: string, logger?: ILogger, api_host?: string): Promise<SlCall> {
     if (!logger) {
         logger = new DummyLogger();
     }
     if (!api_host) {
-        api_host = 'api.starleaf.com'
+        api_host = "api.starleaf.com";
     }
     return new Promise<SlCall>((resolve, reject) => {
-        let api_url = 'https://' + api_host + '/v1/webrtc/org_domain?target=' +encodeURIComponent(target);
+        let api_url = "https://" + api_host + "/v1/webrtc/org_domain?target=" + encodeURIComponent(target);
         fetch(api_url, {
-            method: 'GET',
-            cache: 'no-cache'
+            method: "GET",
+            cache: "no-cache"
         })
             .then(response => {
                 if (response.ok) {
                     return response.json();
                 } else {
-                    throw 'Request failed';
+                    throw "Request failed";
                 }
             })
             .then(json => {
@@ -79,7 +74,7 @@ export interface CallEventMap {
     ended: (reason: CallEndReason) => void;
 }
 
-export type MediaType = 'audio' | 'video';
+export type MediaType = "audio" | "video";
 export type MuteState = { [k in MediaType]?: boolean };
 
 export interface SlCall {

@@ -1,7 +1,7 @@
-import { ILogger } from '../sl';
-import { PCState } from './interface';
-export declare type Orginator = 'remote' | 'local';
-export declare type SdpType = 'offer' | 'answer' | null;
+import { ILogger } from "../sl";
+import { PCState } from "./interface";
+export declare type Orginator = "remote" | "local";
+export declare type SdpType = "offer" | "answer" | null;
 export interface SdpData extends RTCSessionDescription {
     originator: Orginator;
     await: () => () => void;

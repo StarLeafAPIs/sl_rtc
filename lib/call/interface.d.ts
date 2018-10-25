@@ -1,4 +1,4 @@
-import { ILogger } from '../sl';
+import { ILogger } from "../sl";
 export declare function createCall(target: string, display_name: string, logger?: ILogger, api_host?: string): Promise<SlCall>;
 export declare enum CallEndReason {
     USER_BYE = 0,
@@ -12,12 +12,12 @@ export declare enum CallEndReason {
     ICE_FAILURE = 8,
     SIP_ERROR = 9,
     INTERNAL_ERROR = 10,
-    UNAVAILABLE = 11,
+    UNAVAILABLE = 11
 }
 export declare enum PCState {
     SEND = 0,
     RECV = 1,
-    DISABLED = 2,
+    DISABLED = 2
 }
 export interface CallEventMap {
     ringing: () => void;
@@ -30,7 +30,7 @@ export interface CallEventMap {
     ending: () => void;
     ended: (reason: CallEndReason) => void;
 }
-export declare type MediaType = 'audio' | 'video';
+export declare type MediaType = "audio" | "video";
 export declare type MuteState = {
     [k in MediaType]?: boolean;
 };

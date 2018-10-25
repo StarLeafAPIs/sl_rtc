@@ -4,4 +4,4 @@ export declare function hasLocalMedia(stream?: MediaStream): {
     audio: boolean;
     video: boolean;
 };
-export { ILogger, Logger } from './logger';
+export { ILogger, Logger } from "./logger";
