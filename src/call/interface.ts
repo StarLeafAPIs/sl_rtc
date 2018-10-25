@@ -2,12 +2,13 @@
 * Copyright (c) StarLeaf Limited, 2017
 */
 
-import { Call } from './call';
-import { ILogger } from '../sl';
+import { Call } from "./call";
+import { ILogger } from "../sl";
 
 export function createCall(
     target: string,
     display_name: string,
+    media_stream?: MediaStream,
     logger?: ILogger,
     api_host?: string
 ): Promise<SlCall> {
@@ -15,19 +16,19 @@ export function createCall(
         logger = new DummyLogger();
     }
     if (!api_host) {
-        api_host = 'api.starleaf.com'
+        api_host = "api.starleaf.com";
     }
     return new Promise<SlCall>((resolve, reject) => {
-        let api_url = 'https://' + api_host + '/v1/webrtc/org_domain?target=' +encodeURIComponent(target);
+        let api_url = "https://" + api_host + "/v1/webrtc/org_domain?target=" + encodeURIComponent(target);
         fetch(api_url, {
-            method: 'GET',
-            cache: 'no-cache'
+            method: "GET",
+            cache: "no-cache"
         })
             .then(response => {
                 if (response.ok) {
                     return response.json();
                 } else {
-                    throw 'Request failed';
+                    throw "Request failed";
                 }
             })
             .then(json => {
@@ -37,13 +38,19 @@ export function createCall(
                     org_domain: json.org_domain,
                     capi_version: json.capi_version
                 };
-                let call = Call(cfg, logger as ILogger, false);
+                let call = Call(cfg, logger as ILogger, false, media_stream);
                 resolve(call);
             })
             .catch((error: any) => {
                 reject(error);
             });
     });
+}
+
+export enum ContentState {
+    SEND = 0,
+    RECV,
+    DISABLED
 }
 
 export enum CallEndReason {
@@ -58,38 +65,41 @@ export enum CallEndReason {
     ICE_FAILURE,
     SIP_ERROR,
     INTERNAL_ERROR,
-    UNAVAILABLE
+    UNAVAILABLE,
+    PLUGIN_CRASH
 }
 
-export enum PCState {
-    SEND = 0,
-    RECV,
-    DISABLED
+export type MediaType = "audio" | "video";
+export type MuteState = { [k in MediaType]: boolean };
+
+export type CallConfig = {
+    target: string;
+    display_name: string;
+    org_domain: string;
+    capi_version: number;
+};
+
+export interface SlCall {
+    on<K extends keyof CallEventMap>(event: K, listener: CallEventMap[K]): void;
+    dial(): void;
+    hangup(): void;
+    mute(mute: MuteState): boolean;
+    isMuted(): MuteState;
+    startContent(stream: MediaStream): void;
+    endContent(): void;
 }
 
 export interface CallEventMap {
     ringing: () => void;
     in_call: () => void;
-    renegotiated: () => void;
+    ice_reinvite_complete: () => void;
+    content_reinvite_complete: () => void; // Will notify you when the SIP re-invite is complete after adding or removing content. Await this before adding or removing content again.
     audio_only: (is_audio_only: boolean) => void;
-    add_stream: (stream: MediaStream) => void;
-    remove_stream: (stream: MediaStream) => void;
-    pc_state: (pc_state: PCState) => void;
+    remote_video: (stream: MediaStream) => void; // Will notify you when the remote a/v stream is added
+    remote_content: (stream?: MediaStream) => void; // Will notify you when remote content is added or removed (stream will be undefined it was removed)
+    local_content: (stream?: MediaStream) => void; // Will notify you when local content is added and removed.
     ending: () => void;
     ended: (reason: CallEndReason) => void;
-}
-
-export type MediaType = 'audio' | 'video';
-export type MuteState = { [k in MediaType]?: boolean };
-
-export interface SlCall {
-    on<K extends keyof CallEventMap>(event: K, listener: CallEventMap[K]): void;
-    dial(local_stream: MediaStream): void;
-    hangup(): void;
-    mute(mute: MuteState): boolean;
-    isMuted(): MuteState;
-    addPCStream(stream: MediaStream): void;
-    removePCStream(stream: MediaStream): void;
 }
 
 class DummyLogger implements ILogger {

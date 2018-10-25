@@ -7,6 +7,9 @@ import adapter = require('webrtc-adapter');
 export var detectedBrowser = adapter.browserDetails.browser;
 export var detectedVersion = adapter.browserDetails.version;
 
+export const browser_name = typeof detectedBrowser === 'string' ? detectedBrowser.toLowerCase() : '';
+export const browser_version = Number(detectedVersion);
+
 export function hasLocalMedia(stream?: MediaStream): { audio: boolean; video: boolean } {
     if (!stream) {
         return { audio: false, video: false };

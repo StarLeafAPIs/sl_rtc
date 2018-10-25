@@ -1,17 +1,17 @@
-import { ILogger } from '../sl';
-import { PCState } from './interface';
-export declare type Orginator = 'remote' | 'local';
-export declare type SdpType = 'offer' | 'answer' | null;
-export interface SdpData extends RTCSessionDescription {
+import { ILogger } from "../sl";
+import { ContentState } from "./interface";
+export declare type Orginator = "remote" | "local";
+export declare type SdpType = "offer" | "answer";
+export interface SdpData {
     originator: Orginator;
-    await: () => () => void;
+    sdp: string;
+    type: SdpType;
+    await_sdp: () => () => void;
 }
-export declare function SdpMunger(base_logger: ILogger, logSdp: boolean, allowH264: boolean): {
+export declare function SdpMunger(base_logger: ILogger, logSdp: boolean): {
     mungeRemote: (data: SdpData) => void;
     mungeLocal: (data: SdpData) => void;
     isAudioOnly: (sdp: any) => boolean;
-    getPcState: (data: SdpData) => PCState;
-    onIceComplete: (pc: RTCPeerConnection, audioOnly: boolean, callback: any) => void;
-    setLocalMedia: (stream?: MediaStream | undefined) => void;
-    stop: () => void;
+    getContentState: (data: SdpData) => ContentState;
+    disableContent: (data: SdpData) => void;
 };
