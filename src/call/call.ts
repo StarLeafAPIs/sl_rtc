@@ -2,12 +2,12 @@
 * Copyright (c) StarLeaf Limited, 2017
 */
 
-import * as sl from '../sl';
-import { ILogger } from '../sl';
-import * as JsSIP from 'jssip-sl';
-import { CallEndReason, MuteState, SlCall, CallEventMap, PCState } from './interface';
-import { StatsManager } from './stats_manager';
-import { SdpMunger, SdpData } from './sdp_munger';
+import * as sl from "../sl";
+import { ILogger } from "../sl";
+import * as JsSIP from "jssip-sl";
+import { CallEndReason, MuteState, SlCall, CallEventMap, PCState } from "./interface";
+import { StatsManager } from "./stats_manager";
+import { SdpMunger, SdpData } from "./sdp_munger";
 
 const statsPeriod = 10000;
 
@@ -33,14 +33,14 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
         allowH264: true,
         websocket_port: 443
     };
-    let logger = base_logger.sub('CALL');
+    let logger = base_logger.sub("CALL");
     let statsManager = StatsManager(statsPeriod, logger);
     let endReason: CallEndReason | null = null;
 
     if (!config.display_name) {
-        throw 'missing display name';
+        throw "missing display name";
     } else if (config.display_name.length > 100) {
-        logger.debug('User name too long, trimming to 100 characters');
+        logger.debug("User name too long, trimming to 100 characters");
         config.display_name = config.display_name.slice(0, 100);
     }
     let handlers = (function() {
@@ -82,7 +82,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     let callEnding = true;
 
     let await_ice_reinvite = config.capi_version >= cc_sends_ice_reinvite_min_version;
-    logger.info('Await remote ice re-invite = ', await_ice_reinvite);
+    logger.info("Await remote ice re-invite = ", await_ice_reinvite);
     let renegotiation_state = {
         complete: false,
         in_progress: false
@@ -95,25 +95,25 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     let connected_ws = false;
 
     let onSdp = function(data: SdpData) {
-        if (data.originator === 'remote') {
-            logger.info('Receiving SDP');
+        if (data.originator === "remote") {
+            logger.info("Receiving SDP");
         } else {
-            logger.info('Sending SDP');
+            logger.info("Sending SDP");
         }
         let isAudioOnly = sdpMunger.isAudioOnly(data.sdp);
-        if (data.originator === 'remote' && isAudioOnly !== audioOnlyCall) {
-            handlers.notify('audio_only', isAudioOnly); //only notify when the audio only status of the call changes
+        if (data.originator === "remote" && isAudioOnly !== audioOnlyCall) {
+            handlers.notify("audio_only", isAudioOnly); //only notify when the audio only status of the call changes
             audioOnlyCall = isAudioOnly;
         }
-        if (data.originator === 'local') {
+        if (data.originator === "local") {
             sdpMunger.mungeLocal(data);
             statsManager.processSdp(data); // always process stats in unified plan form
-            handlers.notify('pc_state', sdpMunger.getPcState(data));
+            handlers.notify("pc_state", sdpMunger.getPcState(data));
         } else {
             let pcstate = sdpMunger.getPcState(data);
             statsManager.processSdp(data);
             sdpMunger.mungeRemote(data);
-            handlers.notify('pc_state', pcstate);
+            handlers.notify("pc_state", pcstate);
         }
     };
 
@@ -124,13 +124,13 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             connectionState: pc.iceConnectionState,
             signalingState: pc.signalingState
         };
-        logger.debug('Ice event: ', ice);
-        let finalConnState = 'completed';
-        if (sl.detectedBrowser === 'firefox') {
-            finalConnState = 'connected';
+        logger.debug("Ice event: ", ice);
+        let finalConnState = "completed";
+        if (sl.detectedBrowser === "firefox") {
+            finalConnState = "connected";
         }
         if (
-            ice.gatheringState === 'complete' &&
+            ice.gatheringState === "complete" &&
             ice.connectionState === finalConnState &&
             !renegotiation_state.complete &&
             !renegotiation_state.in_progress &&
@@ -144,8 +144,8 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
                     mute(mutestatus);
                 });
             });
-        } else if (ice.connectionState === 'failed') {
-            logger.error('Ice connection state failed - ending the call');
+        } else if (ice.connectionState === "failed") {
+            logger.error("Ice connection state failed - ending the call");
             endReason = CallEndReason.ICE_FAILURE;
             onCallError();
         }
@@ -153,68 +153,62 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     let muteStatus: MuteState;
 
     let dial = function(local_stream: MediaStream) {
-        if (!local_stream) throw 'Local media stream is a required parameter';
-        if (local_stream.getAudioTracks().length !== 1)
-            throw 'Local stream must have exactly 1 audio track';
-        if (local_stream.getVideoTracks().length > 1)
-            throw 'Local stream must have 0 or 1 video tracks';
+        if (!local_stream) throw "Local media stream is a required parameter";
+        if (local_stream.getAudioTracks().length !== 1) throw "Local stream must have exactly 1 audio track";
+        if (local_stream.getVideoTracks().length > 1) throw "Local stream must have 0 or 1 video tracks";
         if (local_stream.getVideoTracks().length === 1) {
             let track = local_stream.getVideoTracks()[0];
             if (track.getSettings) {
                 let settings = track.getSettings();
-                if (!settings.width || settings.width > 1280) throw 'Video track width > 1280px';
-                if (!settings.height || settings.height > 720) throw 'Video track height > 720px';
+                if (!settings.width || settings.width > 1280) throw "Video track width > 1280px";
+                if (!settings.height || settings.height > 720) throw "Video track height > 720px";
             }
         }
 
         let jssip_config = {
-            uri: 'unknown@' + config.org_domain,
-            sockets: [
-                new JsSIP.WebSocketInterface(
-                    'wss://' + config.org_domain + ':' + config.websocket_port
-                )
-            ],
+            uri: "unknown@" + config.org_domain,
+            sockets: [new JsSIP.WebSocketInterface("wss://" + config.org_domain + ":" + config.websocket_port)],
             display_name: config.display_name,
             register: false,
             session_timers: false,
-            user_agent: 'WebRTC ' + sl.detectedBrowser.toLowerCase() + ' ' + sl.detectedVersion
+            user_agent: "WebRTC " + "sl_rtc_lib"
         };
         endReason = null;
         callEnding = false;
-        logger.info('Dialling: ', config.target);
+        logger.info("Dialling: ", config.target);
         userAgent = new JsSIP.UA(jssip_config);
-        userAgent.on('connected', function() {
-            logger.info('Useragent connected');
-            handlers.notify('ringing');
+        userAgent.on("connected", function() {
+            logger.info("Useragent connected");
+            handlers.notify("ringing");
             callConnected(local_stream);
         });
 
-        userAgent.on('disconnected', userAgentDisconnect);
+        userAgent.on("disconnected", userAgentDisconnect);
 
-        userAgent.on('newRTCSession', function(e) {
+        userAgent.on("newRTCSession", function(e) {
             rtcSession = e.session as JsSIP.RtcSession;
             muteStatus = rtcSession.isMuted();
-            logger.info('Initial mute status = ', muteStatus);
-            rtcSession.on('ended', function(event) {
-                logger.debug('RtcSession ended');
+            logger.info("Initial mute status = ", muteStatus);
+            rtcSession.on("ended", function(event) {
+                logger.debug("RtcSession ended");
                 onCallError(event);
             });
-            rtcSession.on('failed', function(event) {
-                logger.warn('RtcSession failure');
+            rtcSession.on("failed", function(event) {
+                logger.warn("RtcSession failure");
                 onCallError(event);
             });
-            rtcSession.on('confirmed', function() {
-                logger.info('RtcSession confirmed');
+            rtcSession.on("confirmed", function() {
+                logger.info("RtcSession confirmed");
                 confirmed();
             });
-            rtcSession.on('peerconnection', function(event: { peerconnection: RTCPeerConnection }) {
+            rtcSession.on("peerconnection", function(event: { peerconnection: RTCPeerConnection }) {
                 statsManager.start(event.peerconnection);
-                logger.info('RtcSession peerConnection created');
+                logger.info("RtcSession peerConnection created");
                 event.peerconnection.onaddstream = function(ev) {
-                    handlers.notify('add_stream', ev.stream);
+                    handlers.notify("add_stream", ev.stream);
                 };
                 event.peerconnection.onremovestream = function(ev) {
-                    handlers.notify('remove_stream', ev.stream);
+                    handlers.notify("remove_stream", ev.stream);
                 };
                 event.peerconnection.oniceconnectionstatechange = function(ev) {
                     onIceChange(ev);
@@ -226,14 +220,14 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
                     });
                 };
             });
-            rtcSession.on('sdp', function(event) {
+            rtcSession.on("sdp", function(event) {
                 onSdp(event);
             });
-            rtcSession.on('reinvite', function(event) {
-                logger.info('Reinvite');
+            rtcSession.on("reinvite", function(event) {
+                logger.info("Reinvite");
                 muteStatus = rtcSession.isMuted();
                 event.callback = function() {
-                    logger.info('Reinvite finished');
+                    logger.info("Reinvite finished");
                     mute(muteStatus);
                     if (await_ice_reinvite && !renegotiation_state.complete) {
                         finishedRenegotiation();
@@ -243,7 +237,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
         });
         userAgent.start();
         connectionTimeout = window.setTimeout(function() {
-            logger.warn('WS connection timed out trying to connect');
+            logger.warn("WS connection timed out trying to connect");
             endReason = CallEndReason.CONNECTION_TIMEOUT;
             onCallError();
         }, 10000);
@@ -259,27 +253,22 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             },
             mediaStream: local_stream
         };
-        logger.info(
-            'Sending sip invite to ',
-            config.target,
-            ' with options ',
-            options.rtcOfferConstraints
-        );
+        logger.info("Sending sip invite to ", config.target, " with options ", options.rtcOfferConstraints);
         sdpMunger.setLocalMedia(options.mediaStream);
-        userAgent.call('sip:' + config.target, options);
+        userAgent.call("sip:" + config.target, options);
     };
 
     let confirmed = function() {
-        logger.debug('Call confirmed - going to in_call state');
+        logger.debug("Call confirmed - going to in_call state");
         mute(muteStatus);
-        handlers.notify('in_call');
+        handlers.notify("in_call");
     };
 
     let finishedRenegotiation = function() {
-        logger.debug('Finished renegotiation');
+        logger.debug("Finished renegotiation");
         renegotiation_state.in_progress = false;
         renegotiation_state.complete = true;
-        handlers.notify('renegotiated');
+        handlers.notify("renegotiated");
     };
 
     // this isn't called when the user hangs up.
@@ -291,7 +280,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             } else if (event.cause === JsSIP.C.causes.CONNECTION_ERROR) {
                 return r.CONNECTION_ERROR;
             } else if (event.cause === JsSIP.C.causes.BYE) {
-                if (event.originator === 'remote') {
+                if (event.originator === "remote") {
                     return r.REMOTE_BYE;
                 } else {
                     return r.USER_BYE;
@@ -312,7 +301,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
                 return r.INTERNAL_ERROR;
             }
         } else {
-            logger.error('Unknown error in call');
+            logger.error("Unknown error in call");
             return r.INTERNAL_ERROR;
         }
     };
@@ -328,8 +317,8 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
 
     let hangup = function() {
         shutdown();
-        logger.debug('Hangup');
-        handlers.notify('ending');
+        logger.debug("Hangup");
+        handlers.notify("ending");
         if (renegotiation_state.in_progress) {
             //if we've started the reinvite process, give it some time to complete.
             //it is invalid to send a bye whilst awaiting a response
@@ -343,24 +332,24 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             try {
                 userAgent.stop();
             } catch (ex) {
-                logger.warn('Exception stopping user agent after user hangup ', ex);
+                logger.warn("Exception stopping user agent after user hangup ", ex);
             }
         }
     };
 
     let onCallError = function(jssipEvent?: string) {
         shutdown();
-        logger.debug('RTC session has ended');
+        logger.debug("RTC session has ended");
         if (jssipEvent) {
-            logger.debug('Due to ', jssipEvent);
+            logger.debug("Due to ", jssipEvent);
         }
-        handlers.notify('ending');
+        handlers.notify("ending");
         if (!callEnding) {
             callEnding = true;
             try {
                 userAgent.stop();
             } catch (ex) {
-                logger.warn('Exception stopping user agent after rtcSession ended/failed ', ex);
+                logger.warn("Exception stopping user agent after rtcSession ended/failed ", ex);
             }
             if (endReason === null && jssipEvent) {
                 endReason = translateSipEvent(jssipEvent);
@@ -371,45 +360,45 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     let userAgentDisconnect = function(event: any) {
         shutdown();
         if (event && event.code !== 1000 && !callEnding) {
-            handlers.notify('ending');
-            logger.warn('Websocket closed - ending call. ws event: ', event);
+            handlers.notify("ending");
+            logger.warn("Websocket closed - ending call. ws event: ", event);
             try {
                 userAgent.stop();
             } catch (ex) {
-                logger.warn('Exception stopping user agent after disconnect ', ex);
+                logger.warn("Exception stopping user agent after disconnect ", ex);
             }
         }
         if (endReason === null) {
             if (connected_ws) {
-                logger.error('WS connection unexpected error');
+                logger.error("WS connection unexpected error");
                 endReason = CallEndReason.CONNECTION_ERROR;
             } else {
-                logger.error('WS connection refused');
+                logger.error("WS connection refused");
                 endReason = CallEndReason.CONNECTION_REFUSED;
             }
         }
         renegotiation_state.complete = false;
         renegotiation_state.in_progress = false;
-        handlers.notify('ended', endReason);
+        handlers.notify("ended", endReason);
     };
 
     let mute = function(media: MuteState): boolean {
         if (rtcSession) {
-            if (typeof media.audio === 'boolean') {
+            if (typeof media.audio === "boolean") {
                 if (media.audio) {
-                    logger.info('Muting audio');
+                    logger.info("Muting audio");
                     rtcSession.mute({ audio: true });
                 } else {
-                    logger.info('Unmuting audio');
+                    logger.info("Unmuting audio");
                     rtcSession.unmute({ audio: true });
                 }
             }
-            if (typeof media.video === 'boolean') {
+            if (typeof media.video === "boolean") {
                 if (media.video) {
-                    logger.info('Muting video');
+                    logger.info("Muting video");
                     rtcSession.mute({ video: true });
                 } else {
-                    logger.info('Unmuting video');
+                    logger.info("Unmuting video");
                     rtcSession.unmute({ video: true });
                 }
             }
@@ -439,27 +428,27 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
     let screenSenders: any[] = [];
 
     let canSwitchStreams = function(stream: MediaStream): boolean {
-        return rtcSession && stream && rtcSession.connection.signalingState !== 'closed';
+        return rtcSession && stream && rtcSession.connection.signalingState !== "closed";
     };
 
     let addPCStream = function(stream: MediaStream) {
-        if (stream.getAudioTracks().length !== 0) throw 'PC stream must have no audio track';
-        if (stream.getVideoTracks().length > 1) throw 'PC stream must have 0 or 1 video tracks';
+        if (stream.getAudioTracks().length !== 0) throw "PC stream must have no audio track";
+        if (stream.getVideoTracks().length > 1) throw "PC stream must have 0 or 1 video tracks";
         if (stream.getVideoTracks().length === 1) {
             let track = stream.getVideoTracks()[0];
             if (track.getSettings) {
                 let settings = track.getSettings();
-                if (!settings.width || settings.width > 1920) throw 'Video track width > 1920px';
-                if (!settings.height || settings.height > 1088) throw 'Video track height > 1088px';
+                if (!settings.width || settings.width > 1920) throw "Video track width > 1920px";
+                if (!settings.height || settings.height > 1088) throw "Video track height > 1088px";
             }
         }
 
         if (canSwitchStreams(stream)) {
             let audio_tracks = stream.getAudioTracks();
             if (audio_tracks.length > 0) {
-                logger.error('PC stream has audio track');
+                logger.error("PC stream has audio track");
             }
-            if (sl.detectedBrowser === 'firefox') {
+            if (sl.detectedBrowser === "firefox") {
                 stream.getTracks().forEach(function(track) {
                     let sender = (rtcSession.connection as any).addTrack(track, stream);
                     screenSenders.push(sender);
@@ -475,7 +464,7 @@ export function Call(config_: CallConfig, base_logger: ILogger, logSdp: boolean)
             stream.getTracks().forEach(function(track) {
                 track.stop();
             });
-            if (sl.detectedBrowser === 'firefox') {
+            if (sl.detectedBrowser === "firefox") {
                 screenSenders.forEach(function(sender) {
                     (rtcSession.connection as any).removeTrack(sender);
                 });

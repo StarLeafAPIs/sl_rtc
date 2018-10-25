@@ -1,5 +1,5 @@
-import { ILogger } from '../sl';
-import { SlCall } from './interface';
+import { ILogger } from "../sl";
+import { SlCall } from "./interface";
 export declare type CallConfig = {
     target: string;
     org_domain: string;
