@@ -56,21 +56,19 @@ export function StatsManager(period: number, logger: ILogger) {
     };
     // for reference, a plus sign is an implicit conversion to the number type.
 
-    let commonSendStats = function(result: any, ssrc_info: any, raw_stats: any) {
-        result.pktrate = (+raw_stats.packetsSent - ssrc_info.pkts) / period_seconds;
-        result.kbps = ((+raw_stats.bytesSent - ssrc_info.bytes) * 8.0) / (period_seconds * 1000.0);
-        if (typeof raw_stats.pliCount !== "undefined") {
+    let commonSendStats = function(result: any, ssrcInfo: any, rawStats: any) {
+        result.pktrate = (+rawStats.packetsSent - ssrcInfo.pkts) / period_seconds;
+        result.kbps = (+rawStats.bytesSent - ssrcInfo.bytes) * 8.0 / (period_seconds * 1000.0);
+        if (typeof rawStats.pliCount !== 'undefined') {
             // for video at least we can count the PLI's
-            result.pliCount = +raw_stats.pliCount - ssrc_info.pliCount;
-            ssrc_info.pliCount = +raw_stats.pliCount;
+            result.pliCount = +rawStats.pliCount - ssrcInfo.pliCount;
+            ssrcInfo.pliCount = +rawStats.pliCount;
         }
-        if (typeof raw_stats.googRtt !== "undefined") {
-            result.rtt = +raw_stats.googRtt;
-        } else if (typeof raw_stats.roundTripTime !== "undefined") {
-            result.rtt = +raw_stats.roundTripTime;
+        if (typeof rawStats.roundTripTime !== 'undefined') {
+            result.rtt = +rawStats.roundTripTime;
         }
-        ssrc_info.pkts = +raw_stats.packetsSent;
-        ssrc_info.bytes = +raw_stats.bytesSent;
+        ssrcInfo.pkts = +rawStats.packetsSent;
+        ssrcInfo.bytes = +rawStats.bytesSent;
     };
 
     let commonRecvStats = function(result: any, ssrcInfo: any, rawStats: any) {
@@ -175,27 +173,39 @@ export function StatsManager(period: number, logger: ILogger) {
         logResults(results);
     };
 
+    let processSingleStatsEntry = function (report: any, local: any, isInbound: boolean) {
+        let ssrcInfo = ssrcs[local.ssrc];
+        let parsedStat = {
+            media: ssrcInfo.media,
+            direction: ssrcInfo.direction,
+        };
+        if(isInbound) {
+            commonRecvStats(parsedStat, ssrcInfo, local);
+        } else {
+            commonSendStats(parsedStat, ssrcInfo, local);
+        }
+        return parsedStat;
+    };
+
+
+
     let processW3C = function(report: any) {
         // see https://w3c.github.io/webrtc-stats/#rtcstatstype-str* for the enum
         let results: any[] = [];
-        Object.keys(ssrcs).forEach(function(ssrc: any) {
-            let ssrcInfo = ssrcs[ssrc];
-            let type = ssrcInfo.direction === "in" ? "inbound-rtp" : "outbound-rtp";
-            report.forEach(function(obj: any) {
-                if (obj.type === type && +obj.ssrc === +ssrc) {
-                    let parsedStat = {
-                        media: ssrcInfo.media,
-                        direction: ssrcInfo.direction
-                    };
-                    if (ssrcInfo.direction === "in") {
-                        commonRecvStats(parsedStat, ssrcInfo, obj);
-                    } else {
-                        commonSendStats(parsedStat, ssrcInfo, obj);
-                    }
-                    results.push(parsedStat);
-                }
-            });
-        });
+        for(const stat of report.values()) {
+            if(stat.isRemote) {
+                continue;
+            }
+            let isInbound: boolean | null = null;
+            if(stat.type === 'inbound-rtp') {
+                isInbound = true;
+            } else if (stat.type === 'outbound-rtp') {
+                isInbound = false;
+            }
+            if(isInbound != null) {
+                results.push(processSingleStatsEntry(report, stat, isInbound));
+            }
+        };
         if (results.length > 0) {
             logResults(results);
             return true;
@@ -236,10 +246,24 @@ export function StatsManager(period: number, logger: ILogger) {
         // we will keep track of which mline each ssrc is from, so that if it is disabled
         // we can remove it from the list
 
+
+        let findSsrc = function (mline: any) {
+            let ssrc = null;
+            let ssrcs = Object.keys(mline.sources);
+            if (ssrcs.length === 1) {
+                ssrc = ssrcs[0];
+            } else if (mline.ssrcGroups && mline.ssrcGroups[0].semantics == 'FID') {
+                // per RFC-4588 multiple ssrcs may be sent to indicate retransmission sources - we ignore these
+                ssrc = mline.ssrcGroups[0].ssrcs[0]
+            }
+            return ssrc;
+        };
+
+
         let direction = data.originator === "remote" ? "in" : "out";
         session.media.forEach(function(mline: any, index: number) {
-            if (mline.sources && Object.keys(mline.sources).length === 1) {
-                let ssrc = Object.keys(mline.sources)[0];
+            if (mline.sources && findSsrc(mline)) {
+                let ssrc = findSsrc(mline);
                 let ssrcEntry = {
                     pkts: 0,
                     bytes: 0,
@@ -268,7 +292,7 @@ export function StatsManager(period: number, logger: ILogger) {
                 });
                 ssrcs = purged;
             } else {
-                logger.warn("Unusual mline in SDP, cannot parse single ssrc ");
+                logger.warn('Unusual mline in SDP for mid=', mline.mid, ', cannot parse single ssrc and no ssrc-group to assist');
             }
         });
     };

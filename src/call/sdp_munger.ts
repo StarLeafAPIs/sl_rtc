@@ -26,10 +26,6 @@ export function SdpMunger(base_logger: ILogger, logSdp: boolean, allowH264: bool
     let logger = base_logger.sub("SDP");
     let sdpinterop: any = null;
     let browser_name = detectedBrowser;
-    // Only firefox and edge don't use plan B SDP.
-    if (browser_name !== "firefox" && browser_name !== "edge") {
-        sdpinterop = SdpInterop.InteropChrome();
-    }
 
     let deepCopy = function(thing: any) {
         return JSON.parse(JSON.stringify(thing));
