@@ -1,6 +1,6 @@
 {
     "name": "sl_rtc",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "StarLeaf WebRTC calling",
     "repository": {
         "type": "git",
