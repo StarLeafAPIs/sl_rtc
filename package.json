@@ -28,7 +28,7 @@
         "electron": "^1.8.8",
         "source-map-loader": "^0.2.4",
         "typescript": "^2.9.2",
-        "webpack": "^3.12.0",
+        "webpack": "^5.75.0",
         "webpack-merge": "^4.1.4"
     }
 }
